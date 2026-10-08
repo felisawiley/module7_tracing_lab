@@ -372,6 +372,8 @@
     </style>
 </head>
 
+</div>
+
 <body>
     <header><small>CIT 5930 · MODULE 7 RECITATION</small>
         <h1>Branch & Shift Visualizer</h1>
@@ -509,6 +511,11 @@
         $('revealShift').onclick = () => { const value = $('bitsInput').value.trim(), guess = $('guess').value.trim(), n = Number($('shiftCount').value), op = $('shiftType').value; if (!/^[01]{8}$/.test(value)) { $('shiftFeedback').textContent = 'Enter exactly 8 binary digits (0 or 1).'; $('shiftFeedback').className = 'feedback try'; return } if (!/^[01]{8}$/.test(guess)) { $('shiftFeedback').textContent = 'Make an 8-bit prediction first (eight 0s or 1s).'; $('shiftFeedback').className = 'feedback try'; return } const v = parseInt(value, 2); let result = op === 'SLL' ? (v << n) & 255 : op === 'SRL' ? v >>> n : (signed8(v) >> n) & 255; const output = result.toString(2).padStart(8, '0'); $('shiftFeedback').textContent = guess === output ? 'Correct prediction.' : 'Not quite. Compare your prediction with the bit positions below.'; $('shiftFeedback').className = 'feedback ' + (guess === output ? 'good' : 'try'); idx('beforeIndices'); idx('afterIndices'); bitBoxes('beforeBits', value); bitBoxes('afterBits', output); $('shiftCode').textContent = `${op} R0, R1, #${n}   ; 8-bit teaching view`; $('unsigned').textContent = result; $('signed').textContent = signed8(result); $('shiftNzp').textContent = signed8(result) < 0 ? 'N' : result === 0 ? 'Z' : 'P'; const description = { SLL: `Bits move ${n} place(s) left. The rightmost ${n} position(s) become 0; bits past the left edge are discarded.`, SRL: `Bits move ${n} place(s) right. The leftmost ${n} position(s) become 0; bits past the right edge are discarded.`, SRA: `Bits move ${n} place(s) right. New leftmost positions copy the original sign bit (${value[0]}).` }; $('shiftExplain').textContent = description[op] + ' In real LC-4 execution, this calculation uses all 16 bits of the register.'; $('shiftReveal').classList.remove('hidden') };
         const examples = ['10110100', '00110101', '11100001', '01000010', '10000000']; let shiftIndex = 0; $('shiftReset').onclick = () => { shiftIndex = (shiftIndex + 1) % examples.length; $('bitsInput').value = examples[shiftIndex]; $('shiftType').value = ['SLL', 'SRL', 'SRA'][shiftIndex % 3]; $('shiftCount').value = String(1 + shiftIndex % 3); resetShift() }; updateBranch();
     </script>
+    <div style="text-align:center; margin:30px;">
+          <a href="index.html">
+            ← Back to Code Tracing Lab
+          </a>
+    </div>
 </body>
 
 </html>
