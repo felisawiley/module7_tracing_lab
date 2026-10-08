@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>CIT 5930 | Branch & Shift Visualizer</title>
+    <style>
+        :root {
+            --navy: #061b50;
+            --blue: #427fae;
+            --pale: #e9f2f9;
+            --red: #99001a;
+            --text: #17263b;
+            --muted: #59687a;
+            --border: #d9e2ed;
+            --ok: #12664a;
+            --bg: #f5f7fa
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font: 16px Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text)
+        }
+
+        button,
+        input,
+        select {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid #65a8f3;
+            outline-offset: 2px
+        }
+
+        header {
+            background: var(--navy);
+            border-bottom: 5px solid var(--red);
+            color: white;
+            padding: 25px max(20px, calc((100vw - 1100px)/2))
+        }
+
+        header small {
+            color: #b9d4ea;
+            font-weight: bold;
+            letter-spacing: 1px
+        }
+
+        header h1 {
+            font-size: clamp(25px, 3vw, 35px);
+            margin: 8px 0
+        }
+
+        header p {
+            max-width: 740px;
+            color: #e1eaf6;
+            line-height: 1.5;
+            margin: 0
+        }
+
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 24px 18px 60px
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px
+        }
+
+        .tab,
+        .secondary {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--navy);
+            border-radius: 8px;
+            padding: 11px 15px;
+            font-weight: bold
+        }
+
+        .tab[aria-selected="true"],
+        .primary {
+            background: var(--navy);
+            color: white;
+            border: 1px solid var(--navy);
+            border-radius: 8px;
+            padding: 11px 15px;
+            font-weight: bold
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+            margin: 12px 0;
+            box-shadow: 0 3px 14px #14234b0a
+        }
+
+        h2 {
+            margin: 0 0 8px;
+            font-size: 24px;
+            color: var(--navy)
+        }
+
+        h3 {
+            margin: 8px 0 12px;
+            font-size: 18px
+        }
+
+        p {
+            line-height: 1.5
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .small {
+            font-size: 13px
+        }
+
+        .row {
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            flex-wrap: wrap
+        }
+
+        .field {
+            display: grid;
+            gap: 7px;
+            min-width: 140px;
+            flex: 1
+        }
+
+        .field label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 700
+        }
+
+        .field input,
+        .field select {
+            border: 1px solid #b8c8d7;
+            background: white;
+            border-radius: 8px;
+            padding: 11px;
+            width: 100%;
+            min-width: 0
+        }
+
+        .code {
+            font: 16px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+            background: #eff4f8;
+            color: #112b4a;
+            border-radius: 9px;
+            padding: 14px;
+            overflow-wrap: anywhere
+        }
+
+        .readout {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin: 14px 0
+        }
+
+        .stat {
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 13px;
+            text-align: center
+        }
+
+        .stat small {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 7px
+        }
+
+        .stat strong {
+            font-size: 23px;
+            color: var(--navy)
+        }
+
+        .explain {
+            background: #f1f6fb;
+            padding: 14px;
+            border-left: 4px solid var(--blue);
+            border-radius: 4px;
+            line-height: 1.5
+        }
+
+        .feedback {
+            margin-top: 12px;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            line-height: 1.4
+        }
+
+        .good {
+            background: #e8f6ef;
+            color: #125d42
+        }
+
+        .try {
+            background: #fff4e5;
+            color: #7a4600
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 13px
+        }
+
+        .binary {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 5px;
+            margin: 14px 0
+        }
+
+        .bit {
+            background: #e7eef7;
+            border: 1px solid #adbfda;
+            border-radius: 7px;
+            padding: 12px 0;
+            text-align: center;
+            font-weight: 700;
+            font: 20px ui-monospace, Consolas, monospace;
+            color: var(--navy)
+        }
+
+        .bit.one {
+            background: #c9e2f5;
+            border-color: #4e83b0
+        }
+
+        .bit.sign {
+            border: 2px solid var(--red)
+        }
+
+        .bitindices {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 5px;
+            font-size: 12px;
+            text-align: center;
+            color: var(--muted)
+        }
+
+        .shiftout {
+            display: grid;
+            grid-template-columns: 1fr 40px 1fr;
+            align-items: center;
+            gap: 10px
+        }
+
+        .arr {
+            text-align: center;
+            font-size: 24px;
+            color: var(--red)
+        }
+
+        .prompt {
+            font-weight: 700;
+            margin: 13px 0 8px
+        }
+
+        .choices {
+            display: flex;
+            gap: 9px;
+            flex-wrap: wrap
+        }
+
+        .choice {
+            border: 1px solid #9db2c6;
+            border-radius: 8px;
+            padding: 10px 16px;
+            background: white;
+            color: var(--navy);
+            font-weight: 700
+        }
+
+        .choice[aria-pressed="true"] {
+            background: #dcebf8;
+            border: 2px solid var(--blue);
+            padding: 9px 15px
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: bold;
+            background: #eaf1f8;
+            border-radius: 999px;
+            padding: 5px 10px;
+            color: var(--navy)
+        }
+
+        footer {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+            padding-top: 10px
+        }
+
+        @media(max-width:720px) {
+            .readout {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .card {
+                padding: 15px
+            }
+
+            .shiftout {
+                grid-template-columns: 1fr
+            }
+
+            .arr {
+                transform: rotate(90deg)
+            }
+
+            .bit {
+                font-size: 16px;
+                padding: 9px 0
+            }
+
+            .field {
+                flex-basis: 42%
+            }
+        }
+
+        @media(max-width:410px) {
+            .readout {
+                grid-template-columns: 1fr
+            }
+
+            .bit {
+                font-size: 14px
+            }
+
+            .field {
+                flex-basis: 100%
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header><small>CIT 5930 · MODULE 7 RECITATION</small>
+        <h1>Branch & Shift Visualizer</h1>
+        <p>Predict what LC-4 instructions do, then reveal the machine state. Practice examples are separate from the
+            assigned homework.</p>
+    </header>
+    <main>
+        <nav class="tabs" role="tablist" aria-label="Choose visualizer"><button class="tab" id="branchTab" role="tab"
+                aria-controls="branchPanel" aria-selected="true">01 · Branch Decisions</button><button class="tab"
+                id="shiftTab" role="tab" aria-controls="shiftPanel" aria-selected="false">02 · Binary Shifts</button>
+        </nav>
+        <section id="branchPanel" role="tabpanel" aria-labelledby="branchTab">
+            <div class="card"><span class="badge">COMPARE → NZP → BRANCH</span>
+                <h2>Will the branch be taken?</h2>
+                <p class="muted">Set two values and choose a signed comparison and branch condition. Predict whether the
+                    processor follows the branch before checking.</p>
+                <div class="row">
+                    <div class="field"><label for="rvalue">R1 (signed decimal, −32768 to 32767)</label><input
+                            id="rvalue" type="number" min="-32768" max="32767" value="-2"></div>
+                    <div class="field"><label for="op">Comparison</label><select id="op">
+                            <option value="CMPI">CMPI R1, #immediate</option>
+                            <option value="CMP">CMP R1, R2</option>
+                        </select></div>
+                    <div class="field"><label for="cmpval" id="cmpLabel">Immediate (−64 to 63)</label><input id="cmpval"
+                            type="number" min="-64" max="63" value="0"></div>
+                    <div class="field"><label for="br">Branch instruction</label><select id="br">
+                            <option value="p">BRp</option>
+                            <option value="z">BRz</option>
+                            <option value="n">BRn</option>
+                            <option value="nz">BRnz</option>
+                            <option value="zp">BRzp</option>
+                            <option value="np">BRnp</option>
+                            <option value="nzp">BRnzp</option>
+                        </select></div>
+                </div>
+                <div class="code" id="assembly">CMPI R1, #0<br>BRp TARGET</div>
+                <p class="prompt">Prediction: will this branch be taken?</p>
+                <div class="choices" role="group" aria-label="Branch prediction"><button class="choice"
+                        data-answer="yes" aria-pressed="false">Yes, branch</button><button class="choice"
+                        data-answer="no" aria-pressed="false">No, continue</button></div>
+                <div class="buttons"><button class="primary" id="checkBranch">Check prediction</button><button
+                        class="secondary" id="newBranch">New example</button></div>
+                <div id="branchFeedback" class="feedback hidden" aria-live="polite"></div>
+                <div id="branchReveal" class="hidden">
+                    <div class="readout">
+                        <div class="stat"><small>Comparison result (signed)</small><strong id="diff">—</strong></div>
+                        <div class="stat"><small>NZP set by compare</small><strong id="nzp">—</strong></div>
+                        <div class="stat"><small>Branch outcome</small><strong id="outcome">—</strong></div>
+                    </div>
+                    <div class="explain" id="branchExplain"></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Remember</h3>
+                <p><strong>CMP / CMPI update NZP, not the general-purpose registers.</strong> The following
+                    <code>BR</code> decides whether to change control flow using those condition codes. A compare itself
+                    advances to the next instruction.</p>
+            </div>
+        </section>
+        <section id="shiftPanel" class="hidden" role="tabpanel" aria-labelledby="shiftTab">
+            <div class="card"><span class="badge">8-BIT VISUALIZATION · LC-4 SHIFT RULES</span>
+                <h2>Watch the bits move</h2>
+                <p class="muted">An 8-bit window makes each bit easy to see. LC-4 registers are actually 16-bit; this is
+                    a teaching visualization of the same shifting behavior.</p>
+                <div class="row">
+                    <div class="field"><label for="bitsInput">Starting value (8 bits)</label><input id="bitsInput"
+                            inputmode="numeric" maxlength="8" value="10110100" spellcheck="false"></div>
+                    <div class="field"><label for="shiftType">Shift operation</label><select id="shiftType">
+                            <option value="SLL">SLL · logical left</option>
+                            <option value="SRL">SRL · logical right</option>
+                            <option value="SRA">SRA · arithmetic right</option>
+                        </select></div>
+                    <div class="field"><label for="shiftCount">Shift amount</label><select id="shiftCount">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                        </select></div>
+                </div>
+                <p class="prompt">Before revealing: predict the output bits.</p>
+                <div class="field"><label for="guess">Your prediction (8 bits)</label><input id="guess" maxlength="8"
+                        inputmode="numeric" placeholder="e.g. 01101000" spellcheck="false"></div>
+                <div class="buttons"><button class="primary" id="revealShift">Check & visualize</button><button
+                        class="secondary" id="shiftReset">New example</button></div>
+                <div id="shiftFeedback" class="feedback hidden" aria-live="polite"></div>
+                <div id="shiftReveal" class="hidden">
+                    <div class="shiftout">
+                        <div>
+                            <h3>Before</h3>
+                            <div id="beforeIndices" class="bitindices"></div>
+                            <div id="beforeBits" class="binary"></div>
+                        </div>
+                        <div class="arr" aria-hidden="true">→</div>
+                        <div>
+                            <h3>After</h3>
+                            <div id="afterIndices" class="bitindices"></div>
+                            <div id="afterBits" class="binary"></div>
+                        </div>
+                    </div>
+                    <div class="code" id="shiftCode"></div>
+                    <div class="readout">
+                        <div class="stat"><small>Unsigned (8-bit result)</small><strong id="unsigned">—</strong></div>
+                        <div class="stat"><small>Signed (8-bit result)</small><strong id="signed">—</strong></div>
+                        <div class="stat"><small>Result sign / NZP</small><strong id="shiftNzp">—</strong></div>
+                    </div>
+                    <div class="explain" id="shiftExplain"></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>How the three shifts differ</h3>
+                <p><strong>SLL</strong> moves bits left and fills new right-hand positions with 0. <strong>SRL</strong>
+                    moves bits right and fills new left-hand positions with 0. <strong>SRA</strong> moves bits right
+                    while copying the original sign bit into the new left-hand positions.</p>
+                <p class="small muted">Note: LC-4 sets NZP from the full 16-bit instruction result. The NZP display
+                    above describes the 8-bit teaching result, not a simulated 16-bit LC-4 register. All examples are
+                    independent of the homework multiplication algorithm.</p>
+            </div>
+        </section>
+        <footer>Designed for instructor-led recitation and independent conceptual practice. This page runs locally in
+            the browser and does not send or save answers.</footer>
+    </main>
+    <script>
+        'use strict'; const $ = id => document.getElementById(id); let branchAnswer = null;
+        function mode(which) { const b = which === 'branch'; $('branchPanel').classList.toggle('hidden', !b); $('shiftPanel').classList.toggle('hidden', b); $('branchTab').setAttribute('aria-selected', String(b)); $('shiftTab').setAttribute('aria-selected', String(!b)); }
+        $('branchTab').onclick = () => mode('branch'); $('shiftTab').onclick = () => mode('shift');
+        function validInt(id, min, max) { let v = Number($(id).value); if (!Number.isInteger(v) || v < min || v > max) { return null } return v }
+        function branchState() { const a = validInt('rvalue', -32768, 32767), op = $('op').value, low = op === 'CMPI' ? -64 : -32768, high = op === 'CMPI' ? 63 : 32767, c = validInt('cmpval', low, high); if (a === null || c === null) return null; let d = a - c; const nzp = d < 0 ? 'N' : d > 0 ? 'P' : 'Z', take = $('br').value.includes(nzp.toLowerCase()); return { a, c, d, nzp, take, op, br: $('br').value }; }
+        function updateBranch() { let state = branchState(); $('assembly').textContent = state ? `${state.op} R1, ${state.op === 'CMPI' ? '#' + state.c : 'R2'}${state.op === 'CMP' ? '  ; R2 = ' + state.c : ''}\nBR${state.br} TARGET` : 'Enter values within the allowed ranges.'; $('branchReveal').classList.add('hidden'); $('branchFeedback').classList.add('hidden'); branchAnswer = null; document.querySelectorAll('[data-answer]').forEach(x => x.setAttribute('aria-pressed', 'false')); }
+        ['rvalue', 'op', 'cmpval', 'br'].forEach(id => $(id).addEventListener('input', () => { if (id === 'op') { $('cmpLabel').textContent = $('op').value === 'CMPI' ? 'Immediate (−64 to 63)' : 'R2 (signed decimal, −32768 to 32767)'; $('cmpval').min = $('op').value === 'CMPI' ? -64 : -32768; $('cmpval').max = $('op').value === 'CMPI' ? 63 : 32767; } updateBranch() }));
+        document.querySelectorAll('[data-answer]').forEach(btn => btn.onclick = () => { branchAnswer = btn.dataset.answer; document.querySelectorAll('[data-answer]').forEach(b => b.setAttribute('aria-pressed', String(b === btn))); });
+        $('checkBranch').onclick = () => { let s = branchState(); if (!s) { $('branchFeedback').textContent = 'Enter valid integer values for the selected instruction.'; $('branchFeedback').className = 'feedback try'; return } if (branchAnswer === null) { $('branchFeedback').textContent = 'Choose Yes or No first.'; $('branchFeedback').className = 'feedback try'; return } let correct = (branchAnswer === 'yes') === s.take; $('branchFeedback').textContent = correct ? 'Correct prediction.' : 'Not quite. Follow the NZP result to see why.'; $('branchFeedback').className = 'feedback ' + (correct ? 'good' : 'try'); $('diff').textContent = s.d; $('nzp').textContent = s.nzp; $('outcome').textContent = s.take ? 'TAKEN' : 'NOT TAKEN'; $('branchExplain').textContent = `${s.op} compares ${s.a} with ${s.c}, yielding ${s.d < 0 ? 'a negative' : s.d > 0 ? 'a positive' : 'a zero'} result. NZP becomes ${s.nzp}. BR${s.br} ${s.take ? 'includes' : 'does not include'} ${s.nzp}, so execution ${s.take ? 'jumps to TARGET' : 'continues to the next instruction'}. Neither R1 nor R2 is changed by the comparison.`; $('branchReveal').classList.remove('hidden'); };
+        const branchExamples = [[-2, 0, 'p'], [4, 4, 'z'], [7, 3, 'nz'], [-3, 1, 'n'], [0, 0, 'nzp'], [6, 9, 'zp']]; let branchIndex = 0; $('newBranch').onclick = () => { branchIndex = (branchIndex + 1) % branchExamples.length; let [a, c, b] = branchExamples[branchIndex]; $('rvalue').value = a; $('op').value = 'CMPI'; $('cmpval').value = c; $('br').value = b; $('cmpLabel').textContent = 'Immediate (−64 to 63)'; updateBranch() };
+        function signed8(n) { return n & 128 ? n - 256 : n } function bitBoxes(id, bitstr) { $(id).innerHTML = ''; for (let i = 0; i < 8; i++) { const el = document.createElement('div'); el.className = 'bit' + (bitstr[i] === '1' ? ' one' : '') + (i === 0 ? ' sign' : ''); el.textContent = bitstr[i]; $(id).append(el) } } function idx(id) { $(id).innerHTML = ''; for (let i = 7; i >= 0; i--) { const e = document.createElement('div'); e.textContent = 'b' + i; $(id).append(e) } }
+        function resetShift() { $('shiftReveal').classList.add('hidden'); $('shiftFeedback').classList.add('hidden'); $('guess').value = '' } ['bitsInput', 'shiftType', 'shiftCount'].forEach(id => $(id).addEventListener('input', resetShift));
+        $('revealShift').onclick = () => { const value = $('bitsInput').value.trim(), guess = $('guess').value.trim(), n = Number($('shiftCount').value), op = $('shiftType').value; if (!/^[01]{8}$/.test(value)) { $('shiftFeedback').textContent = 'Enter exactly 8 binary digits (0 or 1).'; $('shiftFeedback').className = 'feedback try'; return } if (!/^[01]{8}$/.test(guess)) { $('shiftFeedback').textContent = 'Make an 8-bit prediction first (eight 0s or 1s).'; $('shiftFeedback').className = 'feedback try'; return } const v = parseInt(value, 2); let result = op === 'SLL' ? (v << n) & 255 : op === 'SRL' ? v >>> n : (signed8(v) >> n) & 255; const output = result.toString(2).padStart(8, '0'); $('shiftFeedback').textContent = guess === output ? 'Correct prediction.' : 'Not quite. Compare your prediction with the bit positions below.'; $('shiftFeedback').className = 'feedback ' + (guess === output ? 'good' : 'try'); idx('beforeIndices'); idx('afterIndices'); bitBoxes('beforeBits', value); bitBoxes('afterBits', output); $('shiftCode').textContent = `${op} R0, R1, #${n}   ; 8-bit teaching view`; $('unsigned').textContent = result; $('signed').textContent = signed8(result); $('shiftNzp').textContent = signed8(result) < 0 ? 'N' : result === 0 ? 'Z' : 'P'; const description = { SLL: `Bits move ${n} place(s) left. The rightmost ${n} position(s) become 0; bits past the left edge are discarded.`, SRL: `Bits move ${n} place(s) right. The leftmost ${n} position(s) become 0; bits past the right edge are discarded.`, SRA: `Bits move ${n} place(s) right. New leftmost positions copy the original sign bit (${value[0]}).` }; $('shiftExplain').textContent = description[op] + ' In real LC-4 execution, this calculation uses all 16 bits of the register.'; $('shiftReveal').classList.remove('hidden') };
+        const examples = ['10110100', '00110101', '11100001', '01000010', '10000000']; let shiftIndex = 0; $('shiftReset').onclick = () => { shiftIndex = (shiftIndex + 1) % examples.length; $('bitsInput').value = examples[shiftIndex]; $('shiftType').value = ['SLL', 'SRL', 'SRA'][shiftIndex % 3]; $('shiftCount').value = String(1 + shiftIndex % 3); resetShift() }; updateBranch();
+    </script>
+</body>
+
+</html>
