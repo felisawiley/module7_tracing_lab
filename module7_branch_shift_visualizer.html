@@ -372,8 +372,6 @@
     </style>
 </head>
 
-</div>
-
 <body>
     <header><small>CIT 5930 · MODULE 7 RECITATION</small>
         <h1>Branch & Shift Visualizer</h1>
@@ -512,9 +510,9 @@
         const examples = ['10110100', '00110101', '11100001', '01000010', '10000000']; let shiftIndex = 0; $('shiftReset').onclick = () => { shiftIndex = (shiftIndex + 1) % examples.length; $('bitsInput').value = examples[shiftIndex]; $('shiftType').value = ['SLL', 'SRL', 'SRA'][shiftIndex % 3]; $('shiftCount').value = String(1 + shiftIndex % 3); resetShift() }; updateBranch();
     </script>
     <div style="text-align:center; margin:30px;">
-          <a href="index.html">
-            ← Back to Code Tracing Lab
-          </a>
+      <a href="index.html">
+        ← Back to Code Tracing Lab
+      </a>
     </div>
 </body>
 
