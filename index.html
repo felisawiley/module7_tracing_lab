@@ -67,104 +67,151 @@
     </div>
     <div class="card">
       <h3>Branch Unit Diagram</h3>
-      <p class="muted">This diagram shows how compare and branch instructions work together in the LC-4 datapath.</p>
+      <p class="muted">This diagram shows the full instruction cycle: Fetch → Decode → Execute. Compare and branch instructions work together across this pipeline.</p>
       <div class="branch-diagram" id="branchDiagram">
-        <svg viewBox="0 0 700 320" style="width:100%;max-width:700px;height:auto;display:block;margin:auto;">
+        <svg viewBox="0 0 800 400" style="width:100%;max-width:800px;height:auto;display:block;margin:auto;">
+          <!-- FETCH Stage -->
+          <rect x="20" y="30" width="120" height="130" rx="8" fill="#f0e8f8" stroke="#8050a0" stroke-width="2"/>
+          <text x="80" y="55" text-anchor="middle" font-size="12" font-weight="bold" fill="#061b50">FETCH</text>
+          <rect x="35" y="70" width="90" height="35" rx="4" fill="#fff" stroke="#8050a0" stroke-width="1"/>
+          <text x="80" y="85" text-anchor="middle" font-size="9" font-weight="bold" fill="#8050a0">Program</text>
+          <text x="80" y="97" text-anchor="middle" font-size="9" fill="#59687a">Memory</text>
+          <text x="80" y="125" text-anchor="middle" font-size="9" fill="#59687a">PC → Address</text>
+          <text x="80" y="140" text-anchor="middle" font-size="9" fill="#59687a">Read instruction</text>
+          
+          <!-- Arrow Fetch to Decode -->
+          <path d="M140 95 L170 95" stroke="#8050a0" stroke-width="2" marker-end="url(#arrowPurple)"/>
+          <text x="155" y="88" text-anchor="middle" font-size="8" fill="#59687a">16-bit</text>
+          
+          <!-- DECODE Stage -->
+          <rect x="180" y="30" width="120" height="130" rx="8" fill="#fef6e8" stroke="#c08020" stroke-width="2"/>
+          <text x="240" y="55" text-anchor="middle" font-size="12" font-weight="bold" fill="#061b50">DECODE</text>
+          <rect x="195" y="70" width="90" height="35" rx="4" fill="#fff" stroke="#c08020" stroke-width="1"/>
+          <text x="240" y="85" text-anchor="middle" font-size="9" font-weight="bold" fill="#c08020">Control</text>
+          <text x="240" y="97" text-anchor="middle" font-size="9" fill="#59687a">Unit</text>
+          <text x="240" y="125" text-anchor="middle" font-size="9" fill="#59687a">Parse opcode</text>
+          <text x="240" y="140" text-anchor="middle" font-size="9" fill="#59687a">Set control signals</text>
+          
+          <!-- Arrow Decode to Execute -->
+          <path d="M300 95 L330 95" stroke="#c08020" stroke-width="2" marker-end="url(#arrowOrange)"/>
+          
+          <!-- EXECUTE Stage (larger box containing the datapath) -->
+          <rect x="340" y="10" width="450" height="170" rx="8" fill="#e8f4e8" stroke="#12664a" stroke-width="2" stroke-dasharray="5,3"/>
+          <text x="565" y="30" text-anchor="middle" font-size="12" font-weight="bold" fill="#12664a">EXECUTE</text>
+          
           <!-- Register File -->
-          <rect x="30" y="80" width="90" height="100" rx="8" fill="#e8ecf8" stroke="#427fae" stroke-width="2"/>
-          <text x="75" y="105" text-anchor="middle" font-size="12" font-weight="bold" fill="#061b50">Register</text>
-          <text x="75" y="120" text-anchor="middle" font-size="12" font-weight="bold" fill="#061b50">File</text>
-          <text x="75" y="145" text-anchor="middle" font-size="11" fill="#59687a">R0-R7</text>
-          <text x="75" y="165" text-anchor="middle" font-size="10" fill="#59687a" id="diagRs">Rs value</text>
+          <rect x="360" y="50" width="70" height="80" rx="6" fill="#e8ecf8" stroke="#427fae" stroke-width="2"/>
+          <text x="395" y="70" text-anchor="middle" font-size="10" font-weight="bold" fill="#061b50">Register</text>
+          <text x="395" y="82" text-anchor="middle" font-size="10" font-weight="bold" fill="#061b50">File</text>
+          <text x="395" y="100" text-anchor="middle" font-size="9" fill="#59687a">R0-R7</text>
+          <text x="395" y="118" text-anchor="middle" font-size="8" fill="#59687a">Read Rs, Rt</text>
           
           <!-- Arrow from RegFile to ALU -->
-          <path d="M120 110 L170 110" stroke="#427fae" stroke-width="2" marker-end="url(#arrowBlue)"/>
-          <path d="M120 150 L170 150" stroke="#427fae" stroke-width="2" marker-end="url(#arrowBlue)"/>
-          <text x="145" y="102" text-anchor="middle" font-size="9" fill="#59687a">Rs</text>
-          <text x="145" y="165" text-anchor="middle" font-size="9" fill="#59687a">Rt/IMM</text>
+          <path d="M430 75 L470 75" stroke="#427fae" stroke-width="2" marker-end="url(#arrowBlue)"/>
+          <path d="M430 105 L470 105" stroke="#427fae" stroke-width="2" marker-end="url(#arrowBlue)"/>
           
           <!-- ALU -->
-          <polygon points="180,80 250,100 250,160 180,180 180,80" fill="#e0f0e8" stroke="#12664a" stroke-width="2"/>
-          <text x="215" y="125" text-anchor="middle" font-size="12" font-weight="bold" fill="#061b50">ALU</text>
-          <text x="215" y="142" text-anchor="middle" font-size="10" fill="#59687a">Rs − Rt</text>
+          <polygon points="480,50 540,65 540,115 480,130 480,50" fill="#e0f0e8" stroke="#12664a" stroke-width="2"/>
+          <text x="510" y="85" text-anchor="middle" font-size="10" font-weight="bold" fill="#061b50">ALU</text>
+          <text x="510" y="100" text-anchor="middle" font-size="8" fill="#59687a">Rs − Rt</text>
           
           <!-- Arrow from ALU to NZP -->
-          <path d="M250 130 L310 130" stroke="#12664a" stroke-width="2" marker-end="url(#arrowGreen)"/>
-          <text x="280" y="122" text-anchor="middle" font-size="9" fill="#59687a">result</text>
+          <path d="M540 90 L580 90" stroke="#12664a" stroke-width="2" marker-end="url(#arrowGreen)"/>
           
           <!-- NZP Register -->
-          <g id="nzpRegister">
-            <rect x="320" y="100" width="100" height="60" rx="8" fill="#fff0f1" stroke="#99001a" stroke-width="2"/>
-            <text x="370" y="120" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">NZP Register</text>
-            <g transform="translate(330, 135)">
-              <rect x="0" y="0" width="25" height="20" rx="3" fill="#fde2e8" stroke="#99001a" id="diagN"/>
-              <text x="12" y="14" text-anchor="middle" font-size="11" font-weight="bold" fill="#99001a">N</text>
-              <rect x="30" y="0" width="25" height="20" rx="3" fill="#fde2e8" stroke="#99001a" id="diagZ"/>
-              <text x="42" y="14" text-anchor="middle" font-size="11" font-weight="bold" fill="#99001a">Z</text>
-              <rect x="60" y="0" width="25" height="20" rx="3" fill="#fde2e8" stroke="#99001a" id="diagP"/>
-              <text x="72" y="14" text-anchor="middle" font-size="11" font-weight="bold" fill="#99001a">P</text>
-            </g>
+          <rect x="590" y="55" width="80" height="55" rx="6" fill="#fff0f1" stroke="#99001a" stroke-width="2"/>
+          <text x="630" y="72" text-anchor="middle" font-size="9" font-weight="bold" fill="#061b50">NZP</text>
+          <g transform="translate(598, 82)">
+            <rect x="0" y="0" width="20" height="18" rx="3" fill="#fde2e8" stroke="#99001a" id="diagN"/>
+            <text x="10" y="13" text-anchor="middle" font-size="10" font-weight="bold" fill="#99001a">N</text>
+            <rect x="22" y="0" width="20" height="18" rx="3" fill="#fde2e8" stroke="#99001a" id="diagZ"/>
+            <text x="32" y="13" text-anchor="middle" font-size="10" font-weight="bold" fill="#99001a">Z</text>
+            <rect x="44" y="0" width="20" height="18" rx="3" fill="#fde2e8" stroke="#99001a" id="diagP"/>
+            <text x="54" y="13" text-anchor="middle" font-size="10" font-weight="bold" fill="#99001a">P</text>
           </g>
           
           <!-- Arrow from NZP to Branch Logic -->
-          <path d="M420 130 L480 130" stroke="#99001a" stroke-width="2" marker-end="url(#arrowRed)"/>
+          <path d="M670 90 L700 90" stroke="#99001a" stroke-width="2" marker-end="url(#arrowRed)"/>
           
           <!-- Branch Logic -->
-          <rect x="490" y="90" width="100" height="80" rx="8" fill="#f5f0e0" stroke="#a08030" stroke-width="2"/>
-          <text x="540" y="115" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">Branch</text>
-          <text x="540" y="130" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">Logic</text>
-          <text x="540" y="150" text-anchor="middle" font-size="10" fill="#59687a" id="diagBr">BRp check</text>
+          <rect x="710" y="55" width="70" height="55" rx="6" fill="#f5f0e0" stroke="#a08030" stroke-width="2"/>
+          <text x="745" y="75" text-anchor="middle" font-size="9" font-weight="bold" fill="#061b50">Branch</text>
+          <text x="745" y="88" text-anchor="middle" font-size="9" font-weight="bold" fill="#061b50">Logic</text>
+          <text x="745" y="103" text-anchor="middle" font-size="8" fill="#59687a" id="diagBr">BRp</text>
           
-          <!-- Arrows from Branch Logic to PC choices -->
-          <path d="M590 110 L640 80" stroke="#12664a" stroke-width="2" marker-end="url(#arrowGreen)"/>
-          <path d="M590 150 L640 180" stroke="#99001a" stroke-width="2" marker-end="url(#arrowRed)"/>
+          <!-- PC Update outcomes -->
+          <rect x="710" y="130" width="70" height="40" rx="6" fill="#e8ecf8" stroke="#427fae" stroke-width="2"/>
+          <text x="745" y="148" text-anchor="middle" font-size="9" font-weight="bold" fill="#061b50">PC</text>
+          <text x="745" y="162" text-anchor="middle" font-size="8" fill="#59687a" id="diagPCResult">+1 or target</text>
           
-          <!-- PC outcomes -->
-          <rect x="645" y="55" width="50" height="40" rx="6" fill="#e0f0e8" stroke="#12664a" stroke-width="2" id="diagTaken"/>
-          <text x="670" y="72" text-anchor="middle" font-size="9" font-weight="bold" fill="#12664a">TAKEN</text>
-          <text x="670" y="85" text-anchor="middle" font-size="8" fill="#59687a">PC=target</text>
+          <!-- Arrow from Branch to PC -->
+          <path d="M745 110 L745 125" stroke="#a08030" stroke-width="2" marker-end="url(#arrowOrange)"/>
           
-          <rect x="645" y="160" width="50" height="40" rx="6" fill="#fde2e8" stroke="#99001a" stroke-width="2" id="diagNotTaken"/>
-          <text x="670" y="175" text-anchor="middle" font-size="8" font-weight="bold" fill="#99001a">NOT</text>
-          <text x="670" y="188" text-anchor="middle" font-size="8" font-weight="bold" fill="#99001a">TAKEN</text>
+          <!-- Outcome indicators -->
+          <rect x="630" y="130" width="50" height="24" rx="4" fill="#e0f0e8" stroke="#12664a" stroke-width="1" id="diagTaken"/>
+          <text x="655" y="146" text-anchor="middle" font-size="8" font-weight="bold" fill="#12664a">TAKEN</text>
+          
+          <rect x="630" y="156" width="50" height="24" rx="4" fill="#fde2e8" stroke="#99001a" stroke-width="1" id="diagNotTaken"/>
+          <text x="655" y="172" text-anchor="middle" font-size="8" font-weight="bold" fill="#99001a">NOT</text>
           
           <!-- Arrow markers -->
           <defs>
-            <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-              <path d="M0,0 L0,6 L9,3 z" fill="#427fae"/>
+            <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L7,3 z" fill="#427fae"/>
             </marker>
-            <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-              <path d="M0,0 L0,6 L9,3 z" fill="#12664a"/>
+            <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L7,3 z" fill="#12664a"/>
             </marker>
-            <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-              <path d="M0,0 L0,6 L9,3 z" fill="#99001a"/>
+            <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L7,3 z" fill="#99001a"/>
+            </marker>
+            <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L7,3 z" fill="#8050a0"/>
+            </marker>
+            <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L7,3 z" fill="#c08020"/>
+            </marker>
+            <marker id="arrowGray" markerWidth="6" markerHeight="6" refX="5" refY="2" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,4 L5,2 z" fill="#59687a"/>
             </marker>
           </defs>
           
-          <!-- Step labels -->
-          <text x="75" y="70" text-anchor="middle" font-size="10" font-weight="bold" fill="#427fae">① Read</text>
-          <text x="215" y="70" text-anchor="middle" font-size="10" font-weight="bold" fill="#12664a">② Compare</text>
-          <text x="370" y="90" text-anchor="middle" font-size="10" font-weight="bold" fill="#99001a">③ Set NZP</text>
-          <text x="540" y="80" text-anchor="middle" font-size="10" font-weight="bold" fill="#a08030">④ Check</text>
-          <text x="670" y="45" text-anchor="middle" font-size="10" font-weight="bold" fill="#061b50">⑤ Update PC</text>
+          <!-- Stage labels -->
+          <text x="80" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#8050a0">① FETCH</text>
+          <text x="240" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#c08020">② DECODE</text>
           
-          <!-- Instruction labels at bottom -->
-          <rect x="80" y="250" width="180" height="50" rx="6" fill="#e8ecf8" stroke="#427fae" stroke-width="1"/>
-          <text x="170" y="270" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">CMP / CMPI</text>
-          <text x="170" y="288" text-anchor="middle" font-size="10" fill="#59687a">Sets NZP, does NOT branch</text>
+          <!-- Instruction flow at bottom -->
+          <rect x="20" y="210" width="240" height="80" rx="8" fill="#f8f8f8" stroke="#ccc" stroke-width="1"/>
+          <text x="140" y="232" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">Instruction 1: CMP / CMPI</text>
+          <text x="140" y="250" text-anchor="middle" font-size="10" fill="#59687a">Fetch → Decode → Execute</text>
+          <text x="140" y="268" text-anchor="middle" font-size="10" fill="#99001a">Sets NZP based on comparison</text>
+          <text x="140" y="283" text-anchor="middle" font-size="9" fill="#59687a">PC increments to next instruction</text>
           
-          <rect x="300" y="250" width="180" height="50" rx="6" fill="#f5f0e0" stroke="#a08030" stroke-width="1"/>
-          <text x="390" y="270" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">BRn / BRz / BRp / ...</text>
-          <text x="390" y="288" text-anchor="middle" font-size="10" fill="#59687a">Checks NZP, may branch</text>
+          <path d="M260 250 L290 250" stroke="#59687a" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrowGray)"/>
+          <text x="275" y="242" text-anchor="middle" font-size="9" fill="#59687a">then</text>
           
-          <path d="M260 275 L300 275" stroke="#59687a" stroke-width="1" stroke-dasharray="4" marker-end="url(#arrowGray)"/>
-          <marker id="arrowGray" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
-            <path d="M0,0 L0,6 L7,3 z" fill="#59687a"/>
-          </marker>
-          <text x="280" y="268" text-anchor="middle" font-size="8" fill="#59687a">then</text>
+          <rect x="300" y="210" width="240" height="80" rx="8" fill="#f8f8f8" stroke="#ccc" stroke-width="1"/>
+          <text x="420" y="232" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">Instruction 2: BRn / BRz / BRp</text>
+          <text x="420" y="250" text-anchor="middle" font-size="10" fill="#59687a">Fetch → Decode → Execute</text>
+          <text x="420" y="268" text-anchor="middle" font-size="10" fill="#a08030">Checks NZP, decides branch</text>
+          <text x="420" y="283" text-anchor="middle" font-size="9" fill="#59687a">PC = target (taken) or PC+1 (not)</text>
+          
+          <!-- Key -->
+          <rect x="560" y="210" width="220" height="80" rx="8" fill="#fff" stroke="#ddd" stroke-width="1"/>
+          <text x="670" y="228" text-anchor="middle" font-size="10" font-weight="bold" fill="#061b50">Key</text>
+          <rect x="575" y="238" width="12" height="12" fill="#f0e8f8" stroke="#8050a0"/>
+          <text x="595" y="248" font-size="9" fill="#59687a">Fetch stage</text>
+          <rect x="665" y="238" width="12" height="12" fill="#fef6e8" stroke="#c08020"/>
+          <text x="685" y="248" font-size="9" fill="#59687a">Decode stage</text>
+          <rect x="575" y="258" width="12" height="12" fill="#e8f4e8" stroke="#12664a"/>
+          <text x="595" y="268" font-size="9" fill="#59687a">Execute stage</text>
+          <rect x="665" y="258" width="12" height="12" fill="#fff0f1" stroke="#99001a"/>
+          <text x="685" y="268" font-size="9" fill="#59687a">NZP register</text>
+          <rect x="575" y="278" width="12" height="12" fill="#f5f0e0" stroke="#a08030"/>
+          <text x="595" y="288" font-size="9" fill="#59687a">Branch logic</text>
         </svg>
       </div>
-      <p class="small muted" style="text-align:center;margin-top:12px;">The compare instruction and branch instruction work as a team: compare sets the condition codes, branch checks them.</p>
+      <p class="small muted" style="text-align:center;margin-top:12px;">Each instruction goes through Fetch → Decode → Execute. The compare sets NZP; the branch reads NZP to decide whether to jump.</p>
     </div>
   </section>
 
@@ -396,18 +443,20 @@ function updateBranchDiagram(s) {
   $('diagZ').nextElementSibling.setAttribute('fill', s.nzp === 'Z' ? '#fff' : '#99001a');
   $('diagP').nextElementSibling.setAttribute('fill', s.nzp === 'P' ? '#fff' : '#99001a');
   // Update branch check text
-  $('diagBr').textContent = `BR${s.br} check`;
+  $('diagBr').textContent = `BR${s.br}`;
+  // Update PC result text
+  $('diagPCResult').textContent = s.take ? 'target' : 'PC + 1';
   // Update outcome boxes
   if (s.take) {
     $('diagTaken').setAttribute('fill', '#12664a');
-    $('diagTaken').setAttribute('stroke-width', '3');
+    $('diagTaken').setAttribute('stroke-width', '2');
     $('diagNotTaken').setAttribute('fill', '#fde2e8');
     $('diagNotTaken').setAttribute('stroke-width', '1');
   } else {
     $('diagTaken').setAttribute('fill', '#e0f0e8');
     $('diagTaken').setAttribute('stroke-width', '1');
     $('diagNotTaken').setAttribute('fill', '#99001a');
-    $('diagNotTaken').setAttribute('stroke-width', '3');
+    $('diagNotTaken').setAttribute('stroke-width', '2');
   }
 }
 const branchExamples = [[-2, 0, 'p'], [4, 4, 'z'], [7, 3, 'nz'], [-3, 1, 'n'], [0, 0, 'nzp'], [6, 9, 'zp']]; let branchIndex = 0;
