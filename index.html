@@ -5,6 +5,7 @@
 .card{background:white;border:1px solid var(--border);border-radius:12px;padding:22px;margin:12px 0;box-shadow:0 3px 14px #14234b0a}.card h2{margin:0 0 8px;font-size:24px;color:var(--navy)}.card h3{margin:8px 0 12px;font-size:18px}.row{display:flex;align-items:flex-end;gap:15px;flex-wrap:wrap}.field{display:grid;gap:7px;min-width:140px;flex:1}.field label{font-size:13px;color:var(--muted);font-weight:700}.field input,.field select{border:1px solid #b8c8d7;background:white;border-radius:8px;padding:11px;width:100%;min-width:0}.code-display{font:16px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;background:#eff4f8;color:#112b4a;border-radius:9px;padding:14px;overflow-wrap:anywhere;white-space:pre-wrap}.readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.stat{border:1px solid var(--border);border-radius:9px;padding:13px;text-align:center}.stat small{display:block;color:var(--muted);margin-bottom:7px}.stat strong{font-size:23px;color:var(--navy)}.explain{background:#f1f6fb;padding:14px;border-left:4px solid var(--blue);border-radius:4px;line-height:1.5}.feedback-box{margin-top:12px;border-radius:8px;padding:12px;font-weight:600;line-height:1.4}.feedback-box.good{background:#e8f6ef;color:#125d42}.feedback-box.try{background:#fff4e5;color:#7a4600}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.primary{background:var(--navy);color:white;border:1px solid var(--navy);border-radius:8px;padding:11px 15px;font-weight:bold}.secondary{background:white;border:1px solid var(--border);color:var(--navy);border-radius:8px;padding:11px 15px;font-weight:bold}.binary{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;margin:14px 0}.bit{background:#e7eef7;border:1px solid #adbfda;border-radius:7px;padding:12px 0;text-align:center;font-weight:700;font:20px ui-monospace,Consolas,monospace;color:var(--navy)}.bit.one{background:#c9e2f5;border-color:#4e83b0}.bit.sign{border:2px solid var(--red)}.bitindices{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;font-size:12px;text-align:center;color:var(--muted)}.shiftout{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:10px}.arr{text-align:center;font-size:24px;color:var(--red)}.prompt{font-weight:700;margin:13px 0 8px}.choices{display:flex;gap:9px;flex-wrap:wrap}.choice[aria-pressed="true"]{background:#dcebf8;border:2px solid var(--blue);padding:9px 15px}.hidden{display:none !important}.badge{display:inline-block;font-size:12px;font-weight:bold;background:#eaf1f8;border-radius:999px;padding:5px 10px;color:var(--navy)}.small{font-size:13px}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.state{grid-template-columns:repeat(4,minmax(0,1fr))}.top{display:block}.tag{display:inline-block;margin-top:12px}.options{grid-template-columns:1fr}.panel{padding:15px}.readout{grid-template-columns:1fr 1fr}.card{padding:15px}.shiftout{grid-template-columns:1fr}.arr{transform:rotate(90deg)}.bit{font-size:16px;padding:9px 0}.field{flex-basis:42%}}
 @media(max-width:410px){.readout{grid-template-columns:1fr}.bit{font-size:14px}.field{flex-basis:100%}}
+.mc-bits{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;margin:10px 0}.mc-bits .bit{padding:10px 0;font-size:16px;min-width:0}.mc-labels{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;font-size:10px;text-align:center;color:var(--muted);margin-bottom:8px}.mc-field{border-radius:6px;padding:2px;margin:-2px}.mc-field.opcode{background:#fde2e8;border:2px solid var(--red)}.mc-field.rd{background:#e0f0e8;border:2px solid var(--ok)}.mc-field.rs{background:#e8ecf8;border:2px solid var(--blue)}.mc-field.rt{background:#f5f0e0;border:2px solid #a08030}.mc-field.imm{background:#f0e8f8;border:2px solid #8050a0}.mc-field.sub{background:#e8e8e8;border:2px solid #888}.mc-sext{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;margin:10px 0}.mc-sext .bit{padding:8px 0;font-size:14px}.mc-sext .bit.extended{background:#f0e8f8;border-color:#8050a0}.mc-sext .bit.original{background:#c9e2f5;border-color:#4e83b0}
 </style></head><body>
 <header><div class="eyebrow">PENN ENGINEERING · CIT 5930 · MODULE 7</div><h1>Interactive LC-4 Code Tracing Lab</h1><p>Predict → Step → Inspect → Explain. Practice reasoning about registers and control flow.</p></header>
 <main>
@@ -63,6 +64,71 @@
     <div class="card">
       <h3>Remember</h3>
       <p><strong>CMP / CMPI update NZP, not the general-purpose registers.</strong> The following <code>BR</code> decides whether to change control flow using those condition codes. A compare itself advances to the next instruction.</p>
+    </div>
+  </section>
+
+  <!-- Machine Code Section -->
+  <section id="machineSection" class="hidden">
+    <div class="card"><span class="badge">INSTRUCTION ENCODING · 16-BIT MACHINE CODE</span>
+      <h2>How instructions become bits</h2>
+      <p class="muted">See how LC-4 encodes assembly instructions into 16-bit machine code. Explore bit fields, sign extension, and value ranges.</p>
+      <div class="row">
+        <div class="field"><label for="mcInst">Instruction type</label><select id="mcInst">
+          <option value="CONST">CONST Rd, #IMM9</option>
+          <option value="ADD">ADD Rd, Rs, Rt (register)</option>
+          <option value="ADDI">ADD Rd, Rs, #IMM5 (immediate)</option>
+          <option value="CMP">CMP Rs, Rt</option>
+          <option value="CMPI">CMPI Rs, #IMM7</option>
+          <option value="SLL">SLL Rd, Rs, #UIMM4</option>
+        </select></div>
+        <div class="field"><label for="mcRd">Rd (destination)</label><select id="mcRd">
+          <option value="0">R0</option><option value="1">R1</option><option value="2">R2</option><option value="3">R3</option>
+          <option value="4">R4</option><option value="5">R5</option><option value="6">R6</option><option value="7">R7</option>
+        </select></div>
+        <div class="field" id="mcRsField"><label for="mcRs">Rs (source)</label><select id="mcRs">
+          <option value="0">R0</option><option value="1">R1</option><option value="2">R2</option><option value="3">R3</option>
+          <option value="4">R4</option><option value="5">R5</option><option value="6">R6</option><option value="7">R7</option>
+        </select></div>
+        <div class="field" id="mcRtField"><label for="mcRt">Rt (source 2)</label><select id="mcRt">
+          <option value="0">R0</option><option value="1">R1</option><option value="2">R2</option><option value="3">R3</option>
+          <option value="4">R4</option><option value="5">R5</option><option value="6">R6</option><option value="7">R7</option>
+        </select></div>
+        <div class="field" id="mcImmField"><label for="mcImm" id="mcImmLabel">Immediate (−256 to 255)</label><input id="mcImm" type="number" value="5"></div>
+      </div>
+      <p class="prompt">Assembly instruction:</p>
+      <div class="code-display" id="mcAssembly">CONST R0, #5</div>
+      
+      <p class="prompt">16-bit machine code:</p>
+      <div class="mc-bits" id="mcBits"></div>
+      <div class="mc-labels" id="mcLabels"></div>
+      
+      <div class="readout" style="margin-top:20px">
+        <div class="stat"><small>Hex encoding</small><strong id="mcHex">—</strong></div>
+        <div class="stat"><small>Immediate range</small><strong id="mcRange">—</strong></div>
+        <div class="stat"><small>Immediate bits</small><strong id="mcImmBits">—</strong></div>
+      </div>
+      
+      <div id="mcSextReveal" class="hidden" style="margin-top:16px">
+        <p class="prompt">Sign extension (SEXT):</p>
+        <div class="explain" id="mcSextExplain"></div>
+        <div class="mc-sext" id="mcSext"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Why sign extension matters</h3>
+      <p>Immediate values in instructions use fewer than 16 bits. To use them in 16-bit operations, the processor <strong>sign-extends</strong> them: it copies the most significant bit (the sign bit) into all the higher positions.</p>
+      <p class="small muted">Example: A 5-bit value of <code>11111</code> (−1 in decimal) becomes <code>1111111111111111</code> (still −1 as a 16-bit value). This preserves the negative value correctly.</p>
+    </div>
+    <div class="card">
+      <h3>Instruction formats</h3>
+      <div class="refgrid">
+        <div><b>CONST</b><br><code>1001 | Rd[3] | IMM9[9]</code><br>Range: −256 to 255</div>
+        <div><b>ADD (register)</b><br><code>0001 | Rd[3] | Rs[3] | 000 | Rt[3]</code></div>
+        <div><b>ADD (immediate)</b><br><code>0001 | Rd[3] | Rs[3] | 1 | IMM5[5]</code><br>Range: −16 to 15</div>
+        <div><b>CMPI</b><br><code>0010 | Rs[3] | 1 | IMM7[7]</code><br>Range: −64 to 63</div>
+        <div><b>CMP</b><br><code>0010 | Rs[3] | 0 | 00 | Rt[3]</code></div>
+        <div><b>SLL</b><br><code>1010 | Rd[3] | Rs[3] | 00 | UIMM4[4]</code><br>Range: 0 to 15</div>
+      </div>
     </div>
   </section>
 
@@ -143,7 +209,8 @@ const allTabs = [
   {id: 'branch-decisions', short: 'Branch Decisions', mode: 'branch'},    // Branch Decisions visualizer
   {id: 'lab-2', short: labs[2].short, mode: 'tracing', labIndex: 2},      // Loops
   {id: 'lab-3', short: labs[3].short, mode: 'tracing', labIndex: 3},      // Bit shifts
-  {id: 'binary-shifts', short: 'Binary Shifts', mode: 'shift'}            // Binary Shifts visualizer
+  {id: 'binary-shifts', short: 'Binary Shifts', mode: 'shift'},           // Binary Shifts visualizer
+  {id: 'machine-code', short: 'Machine Code', mode: 'machine'}            // Machine Code Explorer
 ];
 
 function switchMode(mode, labIndex = 0) {
@@ -151,12 +218,15 @@ function switchMode(mode, labIndex = 0) {
   $('tracingSection').classList.toggle('hidden', mode !== 'tracing');
   $('branchSection').classList.toggle('hidden', mode !== 'branch');
   $('shiftSection').classList.toggle('hidden', mode !== 'shift');
+  $('machineSection').classList.toggle('hidden', mode !== 'machine');
   
   if (mode === 'tracing') {
     lab = labIndex;
     resetTracing();
   } else if (mode === 'branch') {
     updateBranch();
+  } else if (mode === 'machine') {
+    updateMachineCode();
   }
   
   // Update tab selection
@@ -164,7 +234,8 @@ function switchMode(mode, labIndex = 0) {
     const tabData = allTabs[i];
     const isSelected = (mode === 'tracing' && tabData.mode === 'tracing' && tabData.labIndex === labIndex) ||
                        (mode === 'branch' && tabData.mode === 'branch') ||
-                       (mode === 'shift' && tabData.mode === 'shift');
+                       (mode === 'shift' && tabData.mode === 'shift') ||
+                       (mode === 'machine' && tabData.mode === 'machine');
     el.setAttribute('aria-selected', String(isSelected));
   });
 }
@@ -222,6 +293,159 @@ function resetShift() { $('shiftReveal').classList.add('hidden'); $('shiftFeedba
 $('revealShift').onclick = () => { const value = $('bitsInput').value.trim(), guess = $('guess').value.trim(), n = Number($('shiftCount').value), op = $('shiftType').value; if (!/^[01]{8}$/.test(value)) { $('shiftFeedback').textContent = 'Enter exactly 8 binary digits (0 or 1).'; $('shiftFeedback').className = 'feedback-box try'; $('shiftFeedback').classList.remove('hidden'); return } if (!/^[01]{8}$/.test(guess)) { $('shiftFeedback').textContent = 'Make an 8-bit prediction first (eight 0s or 1s).'; $('shiftFeedback').className = 'feedback-box try'; $('shiftFeedback').classList.remove('hidden'); return } const v = parseInt(value, 2); let result = op === 'SLL' ? (v << n) & 255 : op === 'SRL' ? v >>> n : (signed8(v) >> n) & 255; const output = result.toString(2).padStart(8, '0'); $('shiftFeedback').textContent = guess === output ? 'Correct prediction.' : 'Not quite. Compare your prediction with the bit positions below.'; $('shiftFeedback').className = 'feedback-box ' + (guess === output ? 'good' : 'try'); $('shiftFeedback').classList.remove('hidden'); idx('beforeIndices'); idx('afterIndices'); bitBoxes('beforeBits', value); bitBoxes('afterBits', output); $('shiftCode').textContent = `${op} R0, R1, #${n}   ; 8-bit teaching view`; $('unsigned').textContent = result; $('signed').textContent = signed8(result); $('shiftNzp').textContent = signed8(result) < 0 ? 'N' : result === 0 ? 'Z' : 'P'; const description = { SLL: `Bits move ${n} place(s) left. The rightmost ${n} position(s) become 0; bits past the left edge are discarded.`, SRL: `Bits move ${n} place(s) right. The leftmost ${n} position(s) become 0; bits past the right edge are discarded.`, SRA: `Bits move ${n} place(s) right. New leftmost positions copy the original sign bit (${value[0]}).` }; $('shiftExplain').textContent = description[op] + ' In real LC-4 execution, this calculation uses all 16 bits of the register.'; $('shiftReveal').classList.remove('hidden') };
 const examples = ['10110100', '00110101', '11100001', '01000010', '10000000']; let shiftIndex = 0;
 $('shiftReset').onclick = () => { shiftIndex = (shiftIndex + 1) % examples.length; $('bitsInput').value = examples[shiftIndex]; $('shiftType').value = ['SLL', 'SRL', 'SRA'][shiftIndex % 3]; $('shiftCount').value = String(1 + shiftIndex % 3); resetShift() };
+
+// ===== MACHINE CODE LOGIC =====
+const mcFormats = {
+  CONST: { opcode: '1001', fields: ['rd', 'imm9'], immBits: 9, immSigned: true, immMin: -256, immMax: 255 },
+  ADD:   { opcode: '0001', fields: ['rd', 'rs', 'sub000', 'rt'], immBits: 0 },
+  ADDI:  { opcode: '0001', fields: ['rd', 'rs', 'sub1', 'imm5'], immBits: 5, immSigned: true, immMin: -16, immMax: 15 },
+  CMP:   { opcode: '0010', fields: ['rs', 'sub0', 'sub00', 'rt'], immBits: 0 },
+  CMPI:  { opcode: '0010', fields: ['rs', 'sub1', 'imm7'], immBits: 7, immSigned: true, immMin: -64, immMax: 63 },
+  SLL:   { opcode: '1010', fields: ['rd', 'rs', 'sub00', 'uimm4'], immBits: 4, immSigned: false, immMin: 0, immMax: 15 }
+};
+
+function toSignedBinary(val, bits) {
+  if (val < 0) val = (1 << bits) + val;
+  return val.toString(2).padStart(bits, '0');
+}
+
+function updateMachineCode() {
+  const inst = $('mcInst').value;
+  const fmt = mcFormats[inst];
+  const rd = parseInt($('mcRd').value);
+  const rs = parseInt($('mcRs').value);
+  const rt = parseInt($('mcRt').value);
+  let imm = parseInt($('mcImm').value) || 0;
+  
+  // Clamp immediate to valid range
+  if (fmt.immBits > 0) {
+    imm = Math.max(fmt.immMin, Math.min(fmt.immMax, imm));
+    $('mcImm').value = imm;
+  }
+  
+  // Show/hide fields based on instruction
+  const needsRd = fmt.fields.includes('rd');
+  const needsRs = fmt.fields.includes('rs');
+  const needsRt = fmt.fields.includes('rt');
+  const needsImm = fmt.immBits > 0;
+  
+  $('mcRd').closest('.field').style.display = needsRd ? '' : 'none';
+  $('mcRsField').style.display = needsRs ? '' : 'none';
+  $('mcRtField').style.display = needsRt ? '' : 'none';
+  $('mcImmField').style.display = needsImm ? '' : 'none';
+  
+  if (needsImm) {
+    $('mcImmLabel').textContent = fmt.immSigned 
+      ? `Immediate (${fmt.immMin} to ${fmt.immMax})`
+      : `Immediate (0 to ${fmt.immMax})`;
+    $('mcImm').min = fmt.immMin;
+    $('mcImm').max = fmt.immMax;
+  }
+  
+  // Build assembly string
+  let asmStr = '';
+  switch(inst) {
+    case 'CONST': asmStr = `CONST R${rd}, #${imm}`; break;
+    case 'ADD': asmStr = `ADD R${rd}, R${rs}, R${rt}`; break;
+    case 'ADDI': asmStr = `ADD R${rd}, R${rs}, #${imm}`; break;
+    case 'CMP': asmStr = `CMP R${rs}, R${rt}`; break;
+    case 'CMPI': asmStr = `CMPI R${rs}, #${imm}`; break;
+    case 'SLL': asmStr = `SLL R${rd}, R${rs}, #${imm}`; break;
+  }
+  $('mcAssembly').textContent = asmStr;
+  
+  // Build binary encoding
+  let bits = fmt.opcode;
+  let fieldRanges = [{start: 0, end: 3, type: 'opcode', label: 'OPCODE'}];
+  let pos = 4;
+  
+  for (const f of fmt.fields) {
+    if (f === 'rd') {
+      bits += rd.toString(2).padStart(3, '0');
+      fieldRanges.push({start: pos, end: pos+2, type: 'rd', label: 'Rd'});
+      pos += 3;
+    } else if (f === 'rs') {
+      bits += rs.toString(2).padStart(3, '0');
+      fieldRanges.push({start: pos, end: pos+2, type: 'rs', label: 'Rs'});
+      pos += 3;
+    } else if (f === 'rt') {
+      bits += rt.toString(2).padStart(3, '0');
+      fieldRanges.push({start: pos, end: pos+2, type: 'rt', label: 'Rt'});
+      pos += 3;
+    } else if (f === 'sub000') {
+      bits += '000';
+      fieldRanges.push({start: pos, end: pos+2, type: 'sub', label: '000'});
+      pos += 3;
+    } else if (f === 'sub00') {
+      bits += '00';
+      fieldRanges.push({start: pos, end: pos+1, type: 'sub', label: '00'});
+      pos += 2;
+    } else if (f === 'sub0') {
+      bits += '0';
+      fieldRanges.push({start: pos, end: pos, type: 'sub', label: '0'});
+      pos += 1;
+    } else if (f === 'sub1') {
+      bits += '1';
+      fieldRanges.push({start: pos, end: pos, type: 'sub', label: '1'});
+      pos += 1;
+    } else if (f.startsWith('imm') || f.startsWith('uimm')) {
+      const immLen = parseInt(f.replace(/[^\d]/g, ''));
+      bits += toSignedBinary(imm, immLen);
+      fieldRanges.push({start: pos, end: pos+immLen-1, type: 'imm', label: f.toUpperCase()});
+      pos += immLen;
+    }
+  }
+  
+  // Render bits with field highlighting
+  let bitsHtml = '';
+  let labelsHtml = '';
+  for (let i = 0; i < 16; i++) {
+    const field = fieldRanges.find(r => i >= r.start && i <= r.end);
+    const isStart = field && i === field.start;
+    const isEnd = field && i === field.end;
+    const fieldClass = field ? `mc-field ${field.type}` : '';
+    const borderStyle = isStart && isEnd ? 'border-radius:6px' : isStart ? 'border-radius:6px 0 0 6px' : isEnd ? 'border-radius:0 6px 6px 0' : 'border-radius:0';
+    bitsHtml += `<div class="bit ${bits[i]==='1'?'one':''}" style="${fieldClass ? `background:var(--${field.type}-bg, #e7eef7)` : ''}">${bits[i]}</div>`;
+    labelsHtml += `<div>${15-i}</div>`;
+  }
+  $('mcBits').innerHTML = bitsHtml;
+  $('mcLabels').innerHTML = labelsHtml;
+  
+  // Apply field styling via wrapper divs
+  // (simplified: just color the bits directly based on field type)
+  const bitEls = $('mcBits').querySelectorAll('.bit');
+  for (let i = 0; i < 16; i++) {
+    const field = fieldRanges.find(r => i >= r.start && i <= r.end);
+    if (field) {
+      const colors = {opcode:'#fde2e8',rd:'#e0f0e8',rs:'#e8ecf8',rt:'#f5f0e0',imm:'#f0e8f8',sub:'#e8e8e8'};
+      bitEls[i].style.background = colors[field.type] || '#e7eef7';
+    }
+  }
+  
+  // Show hex and range info
+  const hexVal = parseInt(bits, 2).toString(16).toUpperCase().padStart(4, '0');
+  $('mcHex').textContent = '0x' + hexVal;
+  $('mcRange').textContent = fmt.immBits > 0 ? `${fmt.immMin} to ${fmt.immMax}` : 'N/A';
+  $('mcImmBits').textContent = fmt.immBits > 0 ? `${fmt.immBits}-bit` : 'N/A';
+  
+  // Show sign extension for signed immediates
+  if (fmt.immBits > 0 && fmt.immSigned && imm < 0) {
+    $('mcSextReveal').classList.remove('hidden');
+    const immBinary = toSignedBinary(imm, fmt.immBits);
+    const extended = toSignedBinary(imm, 16);
+    $('mcSextExplain').innerHTML = `The ${fmt.immBits}-bit value <code>${immBinary}</code> (${imm}) is sign-extended to 16 bits by copying the sign bit (${immBinary[0]}) into the upper positions.`;
+    let sextHtml = '';
+    for (let i = 0; i < 16; i++) {
+      const isOriginal = i >= (16 - fmt.immBits);
+      sextHtml += `<div class="bit ${extended[i]==='1'?'one':''} ${isOriginal?'original':'extended'}">${extended[i]}</div>`;
+    }
+    $('mcSext').innerHTML = sextHtml;
+  } else {
+    $('mcSextReveal').classList.add('hidden');
+  }
+}
+
+['mcInst', 'mcRd', 'mcRs', 'mcRt', 'mcImm'].forEach(id => $(id).addEventListener('input', updateMachineCode));
 
 // Initialize
 switchMode('tracing', 0);
