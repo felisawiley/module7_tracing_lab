@@ -65,6 +65,107 @@
       <h3>Remember</h3>
       <p><strong>CMP / CMPI update NZP, not the general-purpose registers.</strong> The following <code>BR</code> decides whether to change control flow using those condition codes. A compare itself advances to the next instruction.</p>
     </div>
+    <div class="card">
+      <h3>Branch Unit Diagram</h3>
+      <p class="muted">This diagram shows how compare and branch instructions work together in the LC-4 datapath.</p>
+      <div class="branch-diagram" id="branchDiagram">
+        <svg viewBox="0 0 700 320" style="width:100%;max-width:700px;height:auto;display:block;margin:auto;">
+          <!-- Register File -->
+          <rect x="30" y="80" width="90" height="100" rx="8" fill="#e8ecf8" stroke="#427fae" stroke-width="2"/>
+          <text x="75" y="105" text-anchor="middle" font-size="12" font-weight="bold" fill="#061b50">Register</text>
+          <text x="75" y="120" text-anchor="middle" font-size="12" font-weight="bold" fill="#061b50">File</text>
+          <text x="75" y="145" text-anchor="middle" font-size="11" fill="#59687a">R0-R7</text>
+          <text x="75" y="165" text-anchor="middle" font-size="10" fill="#59687a" id="diagRs">Rs value</text>
+          
+          <!-- Arrow from RegFile to ALU -->
+          <path d="M120 110 L170 110" stroke="#427fae" stroke-width="2" marker-end="url(#arrowBlue)"/>
+          <path d="M120 150 L170 150" stroke="#427fae" stroke-width="2" marker-end="url(#arrowBlue)"/>
+          <text x="145" y="102" text-anchor="middle" font-size="9" fill="#59687a">Rs</text>
+          <text x="145" y="165" text-anchor="middle" font-size="9" fill="#59687a">Rt/IMM</text>
+          
+          <!-- ALU -->
+          <polygon points="180,80 250,100 250,160 180,180 180,80" fill="#e0f0e8" stroke="#12664a" stroke-width="2"/>
+          <text x="215" y="125" text-anchor="middle" font-size="12" font-weight="bold" fill="#061b50">ALU</text>
+          <text x="215" y="142" text-anchor="middle" font-size="10" fill="#59687a">Rs − Rt</text>
+          
+          <!-- Arrow from ALU to NZP -->
+          <path d="M250 130 L310 130" stroke="#12664a" stroke-width="2" marker-end="url(#arrowGreen)"/>
+          <text x="280" y="122" text-anchor="middle" font-size="9" fill="#59687a">result</text>
+          
+          <!-- NZP Register -->
+          <g id="nzpRegister">
+            <rect x="320" y="100" width="100" height="60" rx="8" fill="#fff0f1" stroke="#99001a" stroke-width="2"/>
+            <text x="370" y="120" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">NZP Register</text>
+            <g transform="translate(330, 135)">
+              <rect x="0" y="0" width="25" height="20" rx="3" fill="#fde2e8" stroke="#99001a" id="diagN"/>
+              <text x="12" y="14" text-anchor="middle" font-size="11" font-weight="bold" fill="#99001a">N</text>
+              <rect x="30" y="0" width="25" height="20" rx="3" fill="#fde2e8" stroke="#99001a" id="diagZ"/>
+              <text x="42" y="14" text-anchor="middle" font-size="11" font-weight="bold" fill="#99001a">Z</text>
+              <rect x="60" y="0" width="25" height="20" rx="3" fill="#fde2e8" stroke="#99001a" id="diagP"/>
+              <text x="72" y="14" text-anchor="middle" font-size="11" font-weight="bold" fill="#99001a">P</text>
+            </g>
+          </g>
+          
+          <!-- Arrow from NZP to Branch Logic -->
+          <path d="M420 130 L480 130" stroke="#99001a" stroke-width="2" marker-end="url(#arrowRed)"/>
+          
+          <!-- Branch Logic -->
+          <rect x="490" y="90" width="100" height="80" rx="8" fill="#f5f0e0" stroke="#a08030" stroke-width="2"/>
+          <text x="540" y="115" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">Branch</text>
+          <text x="540" y="130" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">Logic</text>
+          <text x="540" y="150" text-anchor="middle" font-size="10" fill="#59687a" id="diagBr">BRp check</text>
+          
+          <!-- Arrows from Branch Logic to PC choices -->
+          <path d="M590 110 L640 80" stroke="#12664a" stroke-width="2" marker-end="url(#arrowGreen)"/>
+          <path d="M590 150 L640 180" stroke="#99001a" stroke-width="2" marker-end="url(#arrowRed)"/>
+          
+          <!-- PC outcomes -->
+          <rect x="645" y="55" width="50" height="40" rx="6" fill="#e0f0e8" stroke="#12664a" stroke-width="2" id="diagTaken"/>
+          <text x="670" y="72" text-anchor="middle" font-size="9" font-weight="bold" fill="#12664a">TAKEN</text>
+          <text x="670" y="85" text-anchor="middle" font-size="8" fill="#59687a">PC=target</text>
+          
+          <rect x="645" y="160" width="50" height="40" rx="6" fill="#fde2e8" stroke="#99001a" stroke-width="2" id="diagNotTaken"/>
+          <text x="670" y="175" text-anchor="middle" font-size="8" font-weight="bold" fill="#99001a">NOT</text>
+          <text x="670" y="188" text-anchor="middle" font-size="8" font-weight="bold" fill="#99001a">TAKEN</text>
+          
+          <!-- Arrow markers -->
+          <defs>
+            <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#427fae"/>
+            </marker>
+            <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#12664a"/>
+            </marker>
+            <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#99001a"/>
+            </marker>
+          </defs>
+          
+          <!-- Step labels -->
+          <text x="75" y="70" text-anchor="middle" font-size="10" font-weight="bold" fill="#427fae">① Read</text>
+          <text x="215" y="70" text-anchor="middle" font-size="10" font-weight="bold" fill="#12664a">② Compare</text>
+          <text x="370" y="90" text-anchor="middle" font-size="10" font-weight="bold" fill="#99001a">③ Set NZP</text>
+          <text x="540" y="80" text-anchor="middle" font-size="10" font-weight="bold" fill="#a08030">④ Check</text>
+          <text x="670" y="45" text-anchor="middle" font-size="10" font-weight="bold" fill="#061b50">⑤ Update PC</text>
+          
+          <!-- Instruction labels at bottom -->
+          <rect x="80" y="250" width="180" height="50" rx="6" fill="#e8ecf8" stroke="#427fae" stroke-width="1"/>
+          <text x="170" y="270" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">CMP / CMPI</text>
+          <text x="170" y="288" text-anchor="middle" font-size="10" fill="#59687a">Sets NZP, does NOT branch</text>
+          
+          <rect x="300" y="250" width="180" height="50" rx="6" fill="#f5f0e0" stroke="#a08030" stroke-width="1"/>
+          <text x="390" y="270" text-anchor="middle" font-size="11" font-weight="bold" fill="#061b50">BRn / BRz / BRp / ...</text>
+          <text x="390" y="288" text-anchor="middle" font-size="10" fill="#59687a">Checks NZP, may branch</text>
+          
+          <path d="M260 275 L300 275" stroke="#59687a" stroke-width="1" stroke-dasharray="4" marker-end="url(#arrowGray)"/>
+          <marker id="arrowGray" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L7,3 z" fill="#59687a"/>
+          </marker>
+          <text x="280" y="268" text-anchor="middle" font-size="8" fill="#59687a">then</text>
+        </svg>
+      </div>
+      <p class="small muted" style="text-align:center;margin-top:12px;">The compare instruction and branch instruction work as a team: compare sets the condition codes, branch checks them.</p>
+    </div>
   </section>
 
   <!-- Machine Code Section -->
@@ -280,7 +381,35 @@ function branchState() { const a = validInt('rvalue', -32768, 32767), op = $('op
 function updateBranch() { let state = branchState(); $('assembly').innerHTML = state ? `${state.op} R1, ${state.op === 'CMPI' ? '#' + state.c : 'R2'}${state.op === 'CMP' ? '  ; R2 = ' + state.c : ''}<br>BR${state.br} TARGET` : 'Enter values within the allowed ranges.'; $('branchReveal').classList.add('hidden'); $('branchFeedback').classList.add('hidden'); branchAnswer = null; document.querySelectorAll('[data-answer]').forEach(x => x.setAttribute('aria-pressed', 'false')); }
 ['rvalue', 'op', 'cmpval', 'br'].forEach(id => $(id).addEventListener('input', () => { if (id === 'op') { $('cmpLabel').textContent = $('op').value === 'CMPI' ? 'Immediate (−64 to 63)' : 'R2 (signed decimal, −32768 to 32767)'; $('cmpval').min = $('op').value === 'CMPI' ? -64 : -32768; $('cmpval').max = $('op').value === 'CMPI' ? 63 : 32767; } updateBranch() }));
 document.querySelectorAll('[data-answer]').forEach(btn => btn.onclick = () => { branchAnswer = btn.dataset.answer; document.querySelectorAll('[data-answer]').forEach(b => b.setAttribute('aria-pressed', String(b === btn))); });
-$('checkBranch').onclick = () => { let s = branchState(); if (!s) { $('branchFeedback').textContent = 'Enter valid integer values for the selected instruction.'; $('branchFeedback').className = 'feedback-box try'; $('branchFeedback').classList.remove('hidden'); return } if (branchAnswer === null) { $('branchFeedback').textContent = 'Choose Yes or No first.'; $('branchFeedback').className = 'feedback-box try'; $('branchFeedback').classList.remove('hidden'); return } let correct = (branchAnswer === 'yes') === s.take; $('branchFeedback').textContent = correct ? 'Correct prediction.' : 'Not quite. Follow the NZP result to see why.'; $('branchFeedback').className = 'feedback-box ' + (correct ? 'good' : 'try'); $('branchFeedback').classList.remove('hidden'); $('diff').textContent = s.d; $('nzp').textContent = s.nzp; $('outcome').textContent = s.take ? 'TAKEN' : 'NOT TAKEN'; $('branchExplain').textContent = `${s.op} compares ${s.a} with ${s.c}, yielding ${s.d < 0 ? 'a negative' : s.d > 0 ? 'a positive' : 'a zero'} result. NZP becomes ${s.nzp}. BR${s.br} ${s.take ? 'includes' : 'does not include'} ${s.nzp}, so execution ${s.take ? 'jumps to TARGET' : 'continues to the next instruction'}. Neither R1 nor R2 is changed by the comparison.`; $('branchReveal').classList.remove('hidden'); };
+$('checkBranch').onclick = () => { let s = branchState(); if (!s) { $('branchFeedback').textContent = 'Enter valid integer values for the selected instruction.'; $('branchFeedback').className = 'feedback-box try'; $('branchFeedback').classList.remove('hidden'); return } if (branchAnswer === null) { $('branchFeedback').textContent = 'Choose Yes or No first.'; $('branchFeedback').className = 'feedback-box try'; $('branchFeedback').classList.remove('hidden'); return } let correct = (branchAnswer === 'yes') === s.take; $('branchFeedback').textContent = correct ? 'Correct prediction.' : 'Not quite. Follow the NZP result to see why.'; $('branchFeedback').className = 'feedback-box ' + (correct ? 'good' : 'try'); $('branchFeedback').classList.remove('hidden'); $('diff').textContent = s.d; $('nzp').textContent = s.nzp; $('outcome').textContent = s.take ? 'TAKEN' : 'NOT TAKEN'; $('branchExplain').textContent = `${s.op} compares ${s.a} with ${s.c}, yielding ${s.d < 0 ? 'a negative' : s.d > 0 ? 'a positive' : 'a zero'} result. NZP becomes ${s.nzp}. BR${s.br} ${s.take ? 'includes' : 'does not include'} ${s.nzp}, so execution ${s.take ? 'jumps to TARGET' : 'continues to the next instruction'}. Neither R1 nor R2 is changed by the comparison.`; $('branchReveal').classList.remove('hidden'); updateBranchDiagram(s); };
+function updateBranchDiagram(s) {
+  if (!s) return;
+  // Update NZP boxes
+  const nActive = s.nzp === 'N' ? '#99001a' : '#fde2e8';
+  const zActive = s.nzp === 'Z' ? '#99001a' : '#fde2e8';
+  const pActive = s.nzp === 'P' ? '#99001a' : '#fde2e8';
+  $('diagN').setAttribute('fill', nActive);
+  $('diagZ').setAttribute('fill', zActive);
+  $('diagP').setAttribute('fill', pActive);
+  // Update text colors
+  $('diagN').nextElementSibling.setAttribute('fill', s.nzp === 'N' ? '#fff' : '#99001a');
+  $('diagZ').nextElementSibling.setAttribute('fill', s.nzp === 'Z' ? '#fff' : '#99001a');
+  $('diagP').nextElementSibling.setAttribute('fill', s.nzp === 'P' ? '#fff' : '#99001a');
+  // Update branch check text
+  $('diagBr').textContent = `BR${s.br} check`;
+  // Update outcome boxes
+  if (s.take) {
+    $('diagTaken').setAttribute('fill', '#12664a');
+    $('diagTaken').setAttribute('stroke-width', '3');
+    $('diagNotTaken').setAttribute('fill', '#fde2e8');
+    $('diagNotTaken').setAttribute('stroke-width', '1');
+  } else {
+    $('diagTaken').setAttribute('fill', '#e0f0e8');
+    $('diagTaken').setAttribute('stroke-width', '1');
+    $('diagNotTaken').setAttribute('fill', '#99001a');
+    $('diagNotTaken').setAttribute('stroke-width', '3');
+  }
+}
 const branchExamples = [[-2, 0, 'p'], [4, 4, 'z'], [7, 3, 'nz'], [-3, 1, 'n'], [0, 0, 'nzp'], [6, 9, 'zp']]; let branchIndex = 0;
 $('newBranch').onclick = () => { branchIndex = (branchIndex + 1) % branchExamples.length; let [a, c, b] = branchExamples[branchIndex]; $('rvalue').value = a; $('op').value = 'CMPI'; $('cmpval').value = c; $('br').value = b; $('cmpLabel').textContent = 'Immediate (−64 to 63)'; updateBranch() };
 
