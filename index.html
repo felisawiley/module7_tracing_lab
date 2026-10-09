@@ -136,11 +136,14 @@ let currentMode = 'tracing';
 let lab=0,step=-1,selected=null,checked=false,showHint=false;
 const original=[0,0,0,0,0,0,0,0];
 
-// Tab definitions
+// Tab definitions - ordered for logical flow
 const allTabs = [
-  ...labs.map((d,i) => ({id: `lab-${i}`, short: d.short, mode: 'tracing', labIndex: i})),
-  {id: 'branch-decisions', short: 'Branch Decisions', mode: 'branch'},
-  {id: 'binary-shifts', short: 'Binary Shifts', mode: 'shift'}
+  {id: 'lab-0', short: labs[0].short, mode: 'tracing', labIndex: 0},      // Registers
+  {id: 'branch-decisions', short: 'Branch Decisions', mode: 'branch'},    // Branch Decisions visualizer
+  {id: 'lab-1', short: labs[1].short, mode: 'tracing', labIndex: 1},      // Branches
+  {id: 'lab-2', short: labs[2].short, mode: 'tracing', labIndex: 2},      // Loops
+  {id: 'binary-shifts', short: 'Binary Shifts', mode: 'shift'},           // Binary Shifts visualizer
+  {id: 'lab-3', short: labs[3].short, mode: 'tracing', labIndex: 3}       // Bit shifts
 ];
 
 function switchMode(mode, labIndex = 0) {
