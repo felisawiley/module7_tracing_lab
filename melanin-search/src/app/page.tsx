@@ -91,6 +91,7 @@ export default function Home() {
           <span>Melanin Search</span>
           <div className="flex gap-6">
             <Link href="/how-it-works" className="hover:text-zinc-700">How it works</Link>
+            <Link href="/sources" className="hover:text-zinc-700">Sources</Link>
             <Link href="/web3" className="hover:text-zinc-700">Web3</Link>
           </div>
         </div>
