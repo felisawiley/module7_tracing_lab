@@ -3,186 +3,13 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { searchContent, contentDatabase } from "@/lib/data";
+import { rankContent, SearchableContent, RankingFactors } from "@/lib/ranking";
 
-interface SearchResult {
-  id: string;
-  title: string;
-  description: string;
-  url: string;
-  source: string;
-  category: string;
-  imageUrl?: string;
-  creator?: string;
-  isBlackOwned?: boolean;
+interface RankedContent extends SearchableContent {
+  rankingScore: number;
+  rankingFactors: RankingFactors;
 }
-
-const mockResults: Record<string, SearchResult[]> = {
-  hair: [
-    {
-      id: "1",
-      title: "The Ultimate Guide to Protective Styles for Natural Hair",
-      description: "From box braids to faux locs, discover protective styles that promote hair growth while keeping your crown looking gorgeous. Expert tips from licensed stylists.",
-      url: "https://example.com/protective-styles",
-      source: "NaturallyCurly",
-      category: "hair",
-      creator: "Maya Johnson",
-      isBlackOwned: true,
-    },
-    {
-      id: "2",
-      title: "LOC Method: The Secret to Moisturized Type 4 Hair",
-      description: "Learn how to properly layer your products using the Liquid-Oil-Cream method for maximum moisture retention. Perfect for 4A, 4B, and 4C hair textures.",
-      url: "https://example.com/loc-method",
-      source: "CurlPattern",
-      category: "hair",
-      creator: "Destiny Williams",
-      isBlackOwned: true,
-    },
-    {
-      id: "3",
-      title: "Loc Maintenance 101: From Starter Locs to Mature",
-      description: "Everything you need to know about starting and maintaining locs at every stage. Washing, retwisting, and styling tips from loc journey veterans.",
-      url: "https://example.com/loc-maintenance",
-      source: "LocLove Magazine",
-      category: "hair",
-      creator: "Marcus Thompson",
-      isBlackOwned: true,
-    },
-    {
-      id: "4",
-      title: "Best Edges Products for Sleek Laid Baby Hairs",
-      description: "Comprehensive review of edge control products that hold without flaking. Tested on various hair textures with humidity resistance ratings.",
-      url: "https://example.com/edge-control",
-      source: "MelaninHairCare",
-      category: "hair",
-      isBlackOwned: true,
-    },
-    {
-      id: "5",
-      title: "Silk Press vs. Keratin Treatment: What's Better for Your Hair?",
-      description: "A detailed comparison of temporary and semi-permanent straightening methods, with heat protection tips and recovery routines.",
-      url: "https://example.com/silk-press-guide",
-      source: "BlackHairStyle",
-      category: "hair",
-      creator: "Keisha Brown",
-      isBlackOwned: true,
-    },
-  ],
-  beauty: [
-    {
-      id: "6",
-      title: "Foundation Matching for Deep Skin Tones: A Complete Guide",
-      description: "Find your perfect foundation match with our comprehensive guide to undertones, formulas, and the best brands for melanin-rich skin.",
-      url: "https://example.com/foundation-matching",
-      source: "Cocoa Swatches",
-      category: "beauty",
-      creator: "Nia Davis",
-      isBlackOwned: true,
-    },
-    {
-      id: "7",
-      title: "Skincare Routine for Hyperpigmentation and Dark Spots",
-      description: "Dermatologist-approved ingredients and routines specifically formulated for melanin-rich skin. Learn about Vitamin C, niacinamide, and more.",
-      url: "https://example.com/hyperpigmentation",
-      source: "MelaninGlow",
-      category: "beauty",
-      isBlackOwned: true,
-    },
-    {
-      id: "8",
-      title: "Bold Lip Colors That Pop on Dark Skin",
-      description: "From berry tones to classic reds, discover lipstick shades that complement and enhance darker complexions beautifully.",
-      url: "https://example.com/bold-lips",
-      source: "Beauty by Ebony",
-      category: "beauty",
-      creator: "Jasmine Carter",
-      isBlackOwned: true,
-    },
-  ],
-  fashion: [
-    {
-      id: "9",
-      title: "Black-Owned Fashion Brands You Need to Know in 2024",
-      description: "From luxury designers to streetwear labels, discover Black-owned fashion brands making waves in the industry.",
-      url: "https://example.com/black-fashion-brands",
-      source: "StyleNoir",
-      category: "fashion",
-      isBlackOwned: true,
-    },
-    {
-      id: "10",
-      title: "African Print Fashion: Modern Ways to Style Ankara",
-      description: "Contemporary styling tips for incorporating traditional African prints into your everyday wardrobe. From office to weekend looks.",
-      url: "https://example.com/ankara-style",
-      source: "AfroChic",
-      category: "fashion",
-      creator: "Amara Okonkwo",
-      isBlackOwned: true,
-    },
-  ],
-  culture: [
-    {
-      id: "11",
-      title: "The History and Significance of Juneteenth",
-      description: "Understanding the true meaning of Juneteenth, its historical significance, and how communities celebrate freedom today.",
-      url: "https://example.com/juneteenth-history",
-      source: "BlackHistory365",
-      category: "culture",
-      isBlackOwned: true,
-    },
-    {
-      id: "12",
-      title: "Emerging Black Artists Reshaping Contemporary Art",
-      description: "Meet the artists creating groundbreaking work in painting, sculpture, digital art, and mixed media across the globe.",
-      url: "https://example.com/black-artists",
-      source: "ArtNoire",
-      category: "culture",
-      creator: "Gallery Collective",
-      isBlackOwned: true,
-    },
-  ],
-  business: [
-    {
-      id: "13",
-      title: "Starting a Business: Resources for Black Entrepreneurs",
-      description: "Grants, accelerators, and networking opportunities specifically designed to support Black-owned businesses.",
-      url: "https://example.com/black-business-resources",
-      source: "BlackEntrepreneur",
-      category: "business",
-      isBlackOwned: true,
-    },
-    {
-      id: "14",
-      title: "Black-Owned Restaurants to Support in Every Major City",
-      description: "A comprehensive directory of Black-owned restaurants, cafes, and eateries across the United States.",
-      url: "https://example.com/black-restaurants",
-      source: "SupportBlackOwned",
-      category: "business",
-      isBlackOwned: true,
-    },
-  ],
-  wellness: [
-    {
-      id: "15",
-      title: "Mental Health Resources for the Black Community",
-      description: "Culturally competent therapists, support groups, and mental health resources that understand our unique experiences.",
-      url: "https://example.com/mental-health",
-      source: "Therapy for Us",
-      category: "wellness",
-      isBlackOwned: true,
-    },
-    {
-      id: "16",
-      title: "Fitness Influencers Creating Space for Black Bodies",
-      description: "Follow these trainers and fitness creators who celebrate all body types and create inclusive workout content.",
-      url: "https://example.com/fitness-influencers",
-      source: "FitMelanin",
-      category: "wellness",
-      creator: "Various",
-      isBlackOwned: true,
-    },
-  ],
-};
 
 const categories = [
   { id: "all", name: "All", icon: "🔍" },
@@ -194,36 +21,124 @@ const categories = [
   { id: "wellness", name: "Wellness", icon: "🧘🏾" },
 ];
 
+function RankingBadge({ factors }: { factors: RankingFactors }) {
+  return (
+    <div className="flex flex-wrap gap-1">
+      {factors.bonuses.map((bonus, idx) => (
+        <span
+          key={idx}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs font-medium"
+        >
+          <span>✦</span> {bonus}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function RankingDetails({ score, factors }: { score: number; factors: RankingFactors }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="mt-3">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="text-xs text-zinc-500 hover:text-zinc-400 flex items-center gap-1"
+      >
+        <svg
+          className={`w-3 h-3 transition-transform ${isOpen ? "rotate-90" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+        Why this ranked #{Math.round(score)}
+      </button>
+      
+      {isOpen && (
+        <div className="mt-3 p-4 bg-zinc-800/50 rounded-xl text-xs space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-zinc-400 mb-1">Source Credibility</div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 bg-zinc-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-500 rounded-full"
+                    style={{ width: `${factors.sourceCredibility}%` }}
+                  />
+                </div>
+                <span className="text-zinc-300">{factors.sourceCredibility}%</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-zinc-400 mb-1">Content Quality</div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 bg-zinc-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-rose-500 rounded-full"
+                    style={{ width: `${factors.contentQuality}%` }}
+                  />
+                </div>
+                <span className="text-zinc-300">{factors.contentQuality}%</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-zinc-400 mb-1">Community Signals</div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 bg-zinc-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-purple-500 rounded-full"
+                    style={{ width: `${factors.communitySignals}%` }}
+                  />
+                </div>
+                <span className="text-zinc-300">{factors.communitySignals}%</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-zinc-400 mb-1">Query Relevance</div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 bg-zinc-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full"
+                    style={{ width: `${factors.relevance}%` }}
+                  />
+                </div>
+                <span className="text-zinc-300">{Math.round(factors.relevance)}%</span>
+              </div>
+            </div>
+          </div>
+          <div className="text-zinc-400 pt-2 border-t border-zinc-700">
+            <strong className="text-zinc-300">How ranking works:</strong> Content from Black-owned sources 
+            and verified Black creators gets prioritized. We also factor in content quality, 
+            community engagement (upvotes, saves), and how relevant the content is to your search.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get("q") || "";
   const categoryParam = searchParams.get("category") || "all";
+  const showRanking = searchParams.get("showRanking") === "true";
 
   const [searchQuery, setSearchQuery] = useState(query);
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [results, setResults] = useState<RankedContent[]>([]);
+  const [showRankingDetails, setShowRankingDetails] = useState(showRanking);
 
   useEffect(() => {
-    let filteredResults: SearchResult[] = [];
-
-    if (selectedCategory === "all") {
-      filteredResults = Object.values(mockResults).flat();
-    } else {
-      filteredResults = mockResults[selectedCategory] || [];
-    }
-
-    if (query) {
-      const lowerQuery = query.toLowerCase();
-      filteredResults = filteredResults.filter(
-        (r) =>
-          r.title.toLowerCase().includes(lowerQuery) ||
-          r.description.toLowerCase().includes(lowerQuery) ||
-          r.category.toLowerCase().includes(lowerQuery)
-      );
-    }
-
-    setResults(filteredResults);
+    // Get base results
+    const baseResults = searchContent(query, selectedCategory === "all" ? undefined : selectedCategory);
+    
+    // Rank them using our algorithm
+    const rankedResults = rankContent(baseResults, query, selectedCategory === "all" ? undefined : selectedCategory);
+    
+    setResults(rankedResults);
   }, [query, selectedCategory]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -231,6 +146,7 @@ function SearchContent() {
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     if (selectedCategory !== "all") params.set("category", selectedCategory);
+    if (showRankingDetails) params.set("showRanking", "true");
     router.push(`/search?${params.toString()}`);
   };
 
@@ -239,7 +155,14 @@ function SearchContent() {
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     if (catId !== "all") params.set("category", catId);
+    if (showRankingDetails) params.set("showRanking", "true");
     router.push(`/search?${params.toString()}`);
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
   };
 
   return (
@@ -281,12 +204,19 @@ function SearchContent() {
               </div>
             </div>
           </form>
+
+          <Link
+            href="/how-it-works"
+            className="text-zinc-400 hover:text-white text-sm whitespace-nowrap"
+          >
+            How Ranking Works
+          </Link>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Category Tabs */}
-        <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2">
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
           {categories.map((cat) => (
             <button
               key={cat.id}
@@ -303,7 +233,7 @@ function SearchContent() {
         </div>
 
         {/* Results Header */}
-        <div className="mb-6">
+        <div className="flex items-center justify-between mb-6">
           <p className="text-zinc-400 text-sm">
             {results.length} results
             {query && <span> for &quot;{query}&quot;</span>}
@@ -311,26 +241,38 @@ function SearchContent() {
               <span> in {categories.find((c) => c.id === selectedCategory)?.name}</span>
             )}
           </p>
+          <button
+            onClick={() => setShowRankingDetails(!showRankingDetails)}
+            className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
+              showRankingDetails
+                ? "bg-amber-500/20 text-amber-400"
+                : "bg-zinc-800 text-zinc-400 hover:text-white"
+            }`}
+          >
+            {showRankingDetails ? "Hide" : "Show"} Ranking Details
+          </button>
         </div>
 
         {/* Results Grid */}
         {results.length > 0 ? (
           <div className="space-y-4">
-            {results.map((result) => (
+            {results.map((result, index) => (
               <article
                 key={result.id}
                 className="card-hover group bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs text-zinc-500">{result.source}</span>
-                      {result.isBlackOwned && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs font-medium">
-                          <span>✦</span> Black-Owned
-                        </span>
-                      )}
+                  {/* Rank Number */}
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-sm font-medium">
+                    {index + 1}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className="text-xs text-zinc-500">{result.source.name}</span>
+                      <RankingBadge factors={result.rankingFactors} />
                     </div>
+                    
                     <a
                       href={result.url}
                       className="block group-hover:text-amber-400 transition-colors"
@@ -339,20 +281,33 @@ function SearchContent() {
                         {result.title}
                       </h2>
                     </a>
+                    
                     <p className="text-zinc-400 text-sm leading-relaxed mb-3">
                       {result.description}
                     </p>
-                    <div className="flex items-center gap-4">
+                    
+                    <div className="flex items-center gap-4 text-xs text-zinc-500">
                       {result.creator && (
-                        <span className="text-xs text-zinc-500">
-                          By {result.creator}
+                        <span className="flex items-center gap-1">
+                          {result.creator.isVerified && (
+                            <svg className="w-3 h-3 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          By {result.creator.name}
                         </span>
                       )}
-                      <span className="text-xs text-zinc-600 capitalize">
-                        {result.category}
-                      </span>
+                      <span>•</span>
+                      <span>{formatNumber(result.communityUpvotes)} upvotes</span>
+                      <span>•</span>
+                      <span>{formatNumber(result.saveCount)} saves</span>
                     </div>
+
+                    {showRankingDetails && (
+                      <RankingDetails score={result.rankingScore} factors={result.rankingFactors} />
+                    )}
                   </div>
+
                   <div className="shrink-0">
                     <a
                       href={result.url}
