@@ -3,12 +3,17 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { searchContent } from "@/lib/data";
-import { rankContent, SearchableContent, RankingFactors } from "@/lib/ranking";
 
-interface RankedContent extends SearchableContent {
-  rankingScore: number;
-  rankingFactors: RankingFactors;
+interface SearchResult {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  source: string;
+  creator?: string;
+  category: string;
+  tags: string[];
+  isBlackOwned: boolean;
 }
 
 const categories = [
@@ -30,12 +35,32 @@ function SearchContent() {
 
   const [searchQuery, setSearchQuery] = useState(query);
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
-  const [results, setResults] = useState<RankedContent[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTime, setSearchTime] = useState<number | null>(null);
 
   useEffect(() => {
-    const baseResults = searchContent(query, selectedCategory === "all" ? undefined : selectedCategory);
-    const rankedResults = rankContent(baseResults, query, selectedCategory === "all" ? undefined : selectedCategory);
-    setResults(rankedResults);
+    const fetchResults = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (query) params.set("q", query);
+        if (selectedCategory !== "all") params.set("category", selectedCategory);
+
+        const response = await fetch(`/api/search?${params.toString()}`);
+        const data = await response.json();
+        
+        setResults(data.results || []);
+        setSearchTime(data.processingTimeMs);
+      } catch (error) {
+        console.error("Search error:", error);
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
   }, [query, selectedCategory]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -107,17 +132,28 @@ function SearchContent() {
       {/* Results */}
       <main className="max-w-3xl mx-auto px-4 py-6">
         <p className="text-sm text-zinc-500 mb-6">
-          {results.length} results
-          {query && <span> for <strong className="text-zinc-700">{query}</strong></span>}
+          {loading ? (
+            "Searching..."
+          ) : (
+            <>
+              {results.length} results
+              {query && <span> for <strong className="text-zinc-700">{query}</strong></span>}
+              {searchTime !== null && <span className="text-zinc-400"> ({searchTime}ms)</span>}
+            </>
+          )}
         </p>
 
-        {results.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-12 text-zinc-400">
+            Loading...
+          </div>
+        ) : results.length > 0 ? (
           <div className="space-y-6">
             {results.map((result) => (
               <article key={result.id} className="group">
                 <div className="flex items-center gap-2 text-sm text-zinc-500 mb-1">
-                  <span>{result.source.name}</span>
-                  {result.source.isBlackOwned && (
+                  <span>{result.source}</span>
+                  {result.isBlackOwned && (
                     <span className="px-1.5 py-0.5 bg-zinc-100 text-zinc-600 rounded text-xs">
                       Black-owned
                     </span>
@@ -138,7 +174,7 @@ function SearchContent() {
                 </p>
                 {result.creator && (
                   <p className="text-xs text-zinc-400 mt-2">
-                    By {result.creator.name}
+                    By {result.creator}
                   </p>
                 )}
               </article>
