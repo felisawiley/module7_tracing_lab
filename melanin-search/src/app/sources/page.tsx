@@ -24,6 +24,8 @@ const typeLabels: Record<string, string> = {
   youtube: "YouTube",
   podcast: "Podcast",
   directory: "Directory",
+  tiktok: "TikTok",
+  instagram: "Instagram",
 };
 
 function SourceCard({ source }: { source: ContentSource }) {
