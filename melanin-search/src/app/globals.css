@@ -1,110 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f0f0f;
-  --foreground: #fafafa;
-  --gold: #D4AF37;
-  --gold-light: #F4D03F;
-  --terracotta: #C65D3B;
-  --burgundy: #722F37;
-  --deep-purple: #4A1C40;
-  --warm-brown: #8B4513;
-  --cream: #FFF8DC;
-  --sand: #C2B280;
+  --background: #ffffff;
+  --foreground: #18181b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-gold: var(--gold);
-  --color-gold-light: var(--gold-light);
-  --color-terracotta: var(--terracotta);
-  --color-burgundy: var(--burgundy);
-  --color-deep-purple: var(--deep-purple);
-  --color-warm-brown: var(--warm-brown);
-  --color-cream: var(--cream);
-  --color-sand: var(--sand);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
-}
-
-@keyframes gradient-shift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 8s ease infinite;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(212, 175, 55, 0.3),
-    transparent
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
-
-.search-glow {
-  box-shadow: 0 0 40px rgba(212, 175, 55, 0.2),
-              0 0 80px rgba(212, 175, 55, 0.1);
-}
-
-.card-hover {
-  transition: all 0.3s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--terracotta) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.bg-pattern {
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(198, 93, 59, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(74, 28, 64, 0.05) 0%, transparent 50%);
+  font-family: system-ui, -apple-system, sans-serif;
 }
