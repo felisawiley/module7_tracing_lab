@@ -41,6 +41,13 @@ const categories = [
     gradient: "from-blue-600 to-indigo-500",
   },
   {
+    id: "web3",
+    name: "Web3 & Crypto",
+    description: "NFT artists, DeFi, DAOs & Black-led crypto projects",
+    icon: "⛓️",
+    gradient: "from-violet-600 to-purple-500",
+  },
+  {
     id: "wellness",
     name: "Wellness",
     description: "Health, fitness, and mental wellness perspectives",

@@ -18,6 +18,7 @@ const categories = [
   { id: "fashion", name: "Fashion", icon: "👑" },
   { id: "culture", name: "Culture", icon: "🌍" },
   { id: "business", name: "Business", icon: "💼" },
+  { id: "web3", name: "Web3", icon: "⛓️" },
   { id: "wellness", name: "Wellness", icon: "🧘🏾" },
 ];
 

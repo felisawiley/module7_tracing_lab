@@ -107,14 +107,26 @@ export async function fetchRSSFeed(feed: RSSFeed): Promise<RSSItem[]> {
   // This is simplified - use rss-parser in production
   const items = parseRSSXML(xml);
   
-  return items.map(item => ({
-    ...item,
-    sourceId: feed.id,
-    sourceName: feed.name,
-    category: feed.category,
-    isBlackOwned: feed.isBlackOwned,
-    isVerified: feed.isVerified,
-  }));
+  return items
+    .filter((item): item is Required<Pick<RSSItem, 'title' | 'description' | 'url' | 'publishedAt'>> & Partial<RSSItem> => 
+      item.title !== undefined && 
+      item.description !== undefined && 
+      item.url !== undefined &&
+      item.publishedAt !== undefined
+    )
+    .map(item => ({
+      title: item.title,
+      description: item.description,
+      url: item.url,
+      publishedAt: item.publishedAt,
+      author: item.author,
+      imageUrl: item.imageUrl,
+      sourceId: feed.id,
+      sourceName: feed.name,
+      category: feed.category,
+      isBlackOwned: feed.isBlackOwned,
+      isVerified: feed.isVerified,
+    }));
 }
 
 export interface RSSItem {
