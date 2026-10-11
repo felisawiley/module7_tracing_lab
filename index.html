@@ -19,7 +19,7 @@
       <section class="panel"><h3>Machine state</h3><div class="state" id="state"></div><div class="detail" id="detail" aria-live="polite"></div><details><summary>What does NZP mean?</summary><p class="muted"><b>N</b>egative, <b>Z</b>ero or <b>P</b>ositive: the condition codes used by branches. Arithmetic operations update NZP based on their result. CMP/CMPI set NZP from a comparison, without changing general registers.</p></details></section>
       <section class="panel question"><h3>Predict before you step</h3><p id="question"></p><div class="options" id="options"></div><div class="controls"><button class="btn alt" id="check">Check prediction</button></div><div class="feedback" id="feedback" aria-live="polite"></div></section>
     </div>
-    <section class="reference"><h3>Quick reference</h3><div class="refgrid"><div><b>CONST Rd, #imm</b><br>Load an immediate constant into a register.<br><b>ADD Rd, Rs, Rt</b><br>Add two registers.</div><div><b>ADD Rd, Rs, #imm</b><br>Add a small immediate constant.<br><b>CMPI Rs, #imm</b><br>Set NZP by comparing a register to an immediate.</div><div><b>BRp / BRz / BRnz / BRnzp</b><br>Branch if the selected condition code matches.</div><div><b>JMP LABEL</b><br>Jump to a labeled instruction (assembler resolves address).<br><b>SLL</b><br>Shift a register value left.</div></div></section>
+    <section class="reference"><h3>Quick reference</h3><div class="refgrid"><div><b>CONST Rd, #imm</b><br>Load immediate (−256 to 255) into register.<br><b>HICONST Rd, #imm</b><br>Set upper 8 bits of Rd (0 to 255).</div><div><b>ADD Rd, Rs, Rt</b><br>Add two registers.<br><b>ADD Rd, Rs, #imm</b><br>Add a small immediate constant.</div><div><b>CMPI Rs, #imm / CMP Rs, Rt</b><br>Set NZP from comparison (does not change Rs).<br><b>BRp / BRz / BRn / BRnzp</b><br>Branch if condition code matches.</div><div><b>SLL Rd, Rs, #n</b><br>Shift left (multiply by 2^n).<br><b>SRA / SRL Rd, Rs, #n</b><br>Shift right arithmetic/logical (divide by 2^n).</div></div></section>
   </section>
 
   <!-- Branch Decisions Section -->
@@ -215,6 +215,160 @@
     </div>
   </section>
 
+  <!-- CONST & HICONST Section -->
+  <section id="constSection" class="hidden">
+    <div class="card"><span class="badge">LOADING VALUES INTO REGISTERS</span>
+      <h2>CONST and HICONST: Getting Data In</h2>
+      <p class="muted">Before you can compute anything, you need values in registers. CONST and HICONST work together to load any 16-bit value.</p>
+      
+      <h3>The Problem: Limited Bits</h3>
+      <p>An LC-4 instruction is only 16 bits total. After using bits for the opcode and destination register, there's limited space for the actual value:</p>
+      <ul>
+        <li><strong>CONST</strong> uses a 9-bit signed immediate → range: <strong>−256 to 255</strong></li>
+        <li>But LC-4 registers hold 16 bits → range: <strong>−32768 to 32767</strong></li>
+      </ul>
+      <p>So how do you load a value like 1000 or −5000? You need <strong>two instructions</strong>.</p>
+      
+      <h3>How CONST Works</h3>
+      <div class="explain">
+        <code>CONST Rd, #IMM9</code><br><br>
+        Loads a 9-bit signed value (−256 to 255) into Rd.<br>
+        The value is <strong>sign-extended</strong> to fill all 16 bits.<br><br>
+        <strong>Example:</strong> <code>CONST R0, #5</code><br>
+        → R0 = 0000 0000 0000 0101 (decimal 5)<br><br>
+        <strong>Example:</strong> <code>CONST R0, #-1</code><br>
+        → R0 = 1111 1111 1111 1111 (decimal −1, sign bit copied)
+      </div>
+      
+      <h3>How HICONST Works</h3>
+      <div class="explain">
+        <code>HICONST Rd, #UIMM8</code><br><br>
+        Takes the <strong>upper 8 bits</strong> of Rd and replaces them with UIMM8.<br>
+        The <strong>lower 8 bits are preserved</strong> from whatever was already in Rd.<br><br>
+        <strong>This is why you always use CONST first, then HICONST.</strong>
+      </div>
+      
+      <h3>Loading Large Values: The Two-Step Pattern</h3>
+      <p>To load the value <strong>1000</strong> (0x03E8) into R0:</p>
+      <div class="code-display">CONST R0, #0xE8    ; Load lower 8 bits: R0 = 0x00E8 (232)
+HICONST R0, #0x03  ; Set upper 8 bits: R0 = 0x03E8 (1000)</div>
+      <p class="small muted">The assembler often handles this automatically when you write <code>CONST R0, #1000</code> — it generates both instructions for you.</p>
+      
+      <h3>Try It: Build a 16-bit Value</h3>
+      <div class="row">
+        <div class="field"><label for="constTarget">Target value (decimal, −32768 to 32767)</label><input id="constTarget" type="number" min="-32768" max="32767" value="1000"></div>
+      </div>
+      <div id="constResult" class="explain" style="margin-top:14px">Enter a value and click "Show Instructions"</div>
+      <div class="buttons"><button class="primary" id="constCalc">Show Instructions</button></div>
+      
+      <h3 style="margin-top:24px">Why This Matters</h3>
+      <ul>
+        <li><strong>Memory addresses</strong> are 16-bit — you need HICONST to load them</li>
+        <li><strong>Large constants</strong> in calculations require two instructions</li>
+        <li><strong>Understanding encoding</strong> helps you read machine code and debug</li>
+      </ul>
+    </div>
+    
+    <div class="card">
+      <h3>Quick Reference</h3>
+      <div class="refgrid">
+        <div><b>CONST Rd, #IMM9</b><br>Load signed 9-bit value (−256 to 255)<br>Sign-extends to 16 bits</div>
+        <div><b>HICONST Rd, #UIMM8</b><br>Set upper 8 bits (0 to 255)<br>Preserves lower 8 bits of Rd</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Shifts Matter Section -->
+  <section id="whyShiftSection" class="hidden">
+    <div class="card"><span class="badge">BEYOND BIT MANIPULATION</span>
+      <h2>SLL, SRA, SRL: Why Shifting Actually Matters</h2>
+      <p class="muted">Shifts aren't just about moving bits around — they're fast arithmetic operations that every processor uses constantly.</p>
+      
+      <h3>The Big Insight: Shifts = Multiply/Divide by Powers of 2</h3>
+      <div class="explain">
+        <strong>Left shift by N</strong> = Multiply by 2<sup>N</sup><br>
+        <strong>Right shift by N</strong> = Divide by 2<sup>N</sup> (integer division)<br><br>
+        This works because binary is base-2. Moving bits left adds zeros on the right, making the number bigger. Moving bits right removes digits, making it smaller.
+      </div>
+      
+      <h3>Why Use Shifts Instead of Multiply?</h3>
+      <div class="readout">
+        <div class="stat"><small>Shift instruction</small><strong>1 cycle</strong></div>
+        <div class="stat"><small>Multiply instruction</small><strong>3-10+ cycles</strong></div>
+        <div class="stat"><small>Speed advantage</small><strong>3-10x faster</strong></div>
+      </div>
+      <p>Compilers automatically convert multiplications by powers of 2 into shifts. This optimization is happening constantly in your code.</p>
+      
+      <h3>The Three Shift Types Explained</h3>
+      
+      <div class="card" style="margin:16px 0;background:#f8fafe">
+        <h4 style="margin-top:0;color:var(--navy)">SLL — Shift Left Logical</h4>
+        <p><strong>What it does:</strong> Moves all bits left, fills right side with 0s</p>
+        <p><strong>Use case:</strong> Multiply by powers of 2</p>
+        <div class="code-display">SLL R1, R0, #2   ; R1 = R0 × 4
+; Example: R0 = 5 (0101)
+;          R1 = 20 (10100)</div>
+        <p class="small muted">Works for both signed and unsigned numbers (as long as you don't overflow)</p>
+      </div>
+      
+      <div class="card" style="margin:16px 0;background:#f8fafe">
+        <h4 style="margin-top:0;color:var(--navy)">SRL — Shift Right Logical</h4>
+        <p><strong>What it does:</strong> Moves all bits right, fills left side with 0s</p>
+        <p><strong>Use case:</strong> Divide <em>unsigned</em> numbers by powers of 2</p>
+        <div class="code-display">SRL R1, R0, #1   ; R1 = R0 ÷ 2 (unsigned)
+; Example: R0 = 10 (1010)
+;          R1 = 5  (0101)</div>
+        <p class="small muted"><strong>Warning:</strong> Don't use SRL on negative numbers — you'll get wrong results because it fills with 0s instead of preserving the sign.</p>
+      </div>
+      
+      <div class="card" style="margin:16px 0;background:#f8fafe">
+        <h4 style="margin-top:0;color:var(--navy)">SRA — Shift Right Arithmetic</h4>
+        <p><strong>What it does:</strong> Moves all bits right, <em>copies the sign bit</em> into left positions</p>
+        <p><strong>Use case:</strong> Divide <em>signed</em> numbers by powers of 2</p>
+        <div class="code-display">SRA R1, R0, #1   ; R1 = R0 ÷ 2 (signed)
+; Example: R0 = -8 (11111000 in 8-bit)
+;          R1 = -4 (11111100 in 8-bit)
+; The 1s on the left are preserved!</div>
+        <p class="small muted">This is how you divide negative numbers correctly — the sign bit propagates to keep the number negative.</p>
+      </div>
+      
+      <h3>Real-World Uses of Shifts</h3>
+      <div class="refgrid">
+        <div><b>Fast multiplication</b><br><code>x × 10 = (x &lt;&lt; 3) + (x &lt;&lt; 1)</code><br>= x×8 + x×2</div>
+        <div><b>Extract bit fields</b><br>Shift right then mask to isolate specific bits from packed data</div>
+        <div><b>Memory alignment</b><br>Addresses often need to be multiples of 2, 4, or 8</div>
+        <div><b>Color manipulation</b><br>RGB values packed in 24 bits: shift to access R, G, or B channels</div>
+        <div><b>Hash functions</b><br>Bit mixing for fast hash table lookups</div>
+        <div><b>Cryptography</b><br>Rotation and shifts for encryption algorithms</div>
+      </div>
+      
+      <h3>Interactive: See the Math</h3>
+      <div class="row">
+        <div class="field"><label for="shiftMathVal">Value (signed 8-bit: −128 to 127)</label><input id="shiftMathVal" type="number" min="-128" max="127" value="12"></div>
+        <div class="field"><label for="shiftMathOp">Operation</label><select id="shiftMathOp">
+          <option value="SLL">SLL (×2^n)</option>
+          <option value="SRL">SRL (÷2^n unsigned)</option>
+          <option value="SRA">SRA (÷2^n signed)</option>
+        </select></div>
+        <div class="field"><label for="shiftMathAmt">Shift amount</label><select id="shiftMathAmt">
+          <option value="1">1 (×2 or ÷2)</option>
+          <option value="2">2 (×4 or ÷4)</option>
+          <option value="3">3 (×8 or ÷8)</option>
+          <option value="4">4 (×16 or ÷16)</option>
+        </select></div>
+      </div>
+      <div id="shiftMathResult" class="explain" style="margin-top:14px">Enter a value and click "Calculate"</div>
+      <div class="buttons"><button class="primary" id="shiftMathCalc">Calculate</button></div>
+      
+      <h3 style="margin-top:24px">Common Mistakes</h3>
+      <ul>
+        <li><strong>Using SRL on signed numbers:</strong> −4 SRL 1 gives a huge positive number, not −2</li>
+        <li><strong>Overflow on left shifts:</strong> Shifting too far can lose significant bits</li>
+        <li><strong>Forgetting integer division rounds toward zero:</strong> 7 SRA 1 = 3 (not 3.5), but −7 SRA 1 = −4 (rounds toward negative infinity)</li>
+      </ul>
+    </div>
+  </section>
+
   <!-- Machine Code Section -->
   <section id="machineSection" class="hidden">
     <div class="card"><span class="badge">INSTRUCTION ENCODING · 16-BIT MACHINE CODE</span>
@@ -223,11 +377,14 @@
       <div class="row">
         <div class="field"><label for="mcInst">Instruction type</label><select id="mcInst">
           <option value="CONST">CONST Rd, #IMM9</option>
+          <option value="HICONST">HICONST Rd, #UIMM8</option>
           <option value="ADD">ADD Rd, Rs, Rt (register)</option>
           <option value="ADDI">ADD Rd, Rs, #IMM5 (immediate)</option>
           <option value="CMP">CMP Rs, Rt</option>
           <option value="CMPI">CMPI Rs, #IMM7</option>
           <option value="SLL">SLL Rd, Rs, #UIMM4</option>
+          <option value="SRA">SRA Rd, Rs, #UIMM4</option>
+          <option value="SRL">SRL Rd, Rs, #UIMM4</option>
         </select></div>
         <div class="field"><label for="mcRd">Rd (destination)</label><select id="mcRd">
           <option value="0">R0</option><option value="1">R1</option><option value="2">R2</option><option value="3">R3</option>
@@ -271,11 +428,14 @@
       <h3>Instruction formats</h3>
       <div class="refgrid">
         <div><b>CONST</b><br><code>1001 | Rd[3] | IMM9[9]</code><br>Range: −256 to 255</div>
+        <div><b>HICONST</b><br><code>1101 | Rd[3] | UIMM8[8]</code><br>Range: 0 to 255 (sets upper byte)</div>
         <div><b>ADD (register)</b><br><code>0001 | Rd[3] | Rs[3] | 000 | Rt[3]</code></div>
         <div><b>ADD (immediate)</b><br><code>0001 | Rd[3] | Rs[3] | 1 | IMM5[5]</code><br>Range: −16 to 15</div>
         <div><b>CMPI</b><br><code>0010 | Rs[3] | 1 | IMM7[7]</code><br>Range: −64 to 63</div>
         <div><b>CMP</b><br><code>0010 | Rs[3] | 0 | 00 | Rt[3]</code></div>
-        <div><b>SLL</b><br><code>1010 | Rd[3] | Rs[3] | 00 | UIMM4[4]</code><br>Range: 0 to 15</div>
+        <div><b>SLL</b><br><code>1010 | Rd[3] | Rs[3] | 00 | UIMM4[4]</code><br>Shift left logical (×2^n)</div>
+        <div><b>SRA</b><br><code>1010 | Rd[3] | Rs[3] | 01 | UIMM4[4]</code><br>Shift right arithmetic (÷2^n signed)</div>
+        <div><b>SRL</b><br><code>1010 | Rd[3] | Rs[3] | 10 | UIMM4[4]</code><br>Shift right logical (÷2^n unsigned)</div>
       </div>
     </div>
   </section>
@@ -353,10 +513,12 @@ const original=[0,0,0,0,0,0,0,0];
 // Tab definitions - tracing first, then visualizers for practice
 const allTabs = [
   {id: 'lab-0', short: labs[0].short, mode: 'tracing', labIndex: 0},      // Registers
+  {id: 'const-hiconst', short: 'CONST/HICONST', mode: 'const'},           // CONST & HICONST explainer
   {id: 'lab-1', short: labs[1].short, mode: 'tracing', labIndex: 1},      // Branches
   {id: 'branch-decisions', short: 'Branch Decisions', mode: 'branch'},    // Branch Decisions visualizer
   {id: 'lab-2', short: labs[2].short, mode: 'tracing', labIndex: 2},      // Loops
   {id: 'lab-3', short: labs[3].short, mode: 'tracing', labIndex: 3},      // Bit shifts
+  {id: 'why-shifts', short: 'Why Shifts Matter', mode: 'whyshift'},       // Why shifts matter explainer
   {id: 'binary-shifts', short: 'Binary Shifts', mode: 'shift'},           // Binary Shifts visualizer
   {id: 'machine-code', short: 'Machine Code', mode: 'machine'}            // Machine Code Explorer
 ];
@@ -367,6 +529,8 @@ function switchMode(mode, labIndex = 0) {
   $('branchSection').classList.toggle('hidden', mode !== 'branch');
   $('shiftSection').classList.toggle('hidden', mode !== 'shift');
   $('machineSection').classList.toggle('hidden', mode !== 'machine');
+  $('constSection').classList.toggle('hidden', mode !== 'const');
+  $('whyShiftSection').classList.toggle('hidden', mode !== 'whyshift');
   
   if (mode === 'tracing') {
     lab = labIndex;
@@ -383,7 +547,9 @@ function switchMode(mode, labIndex = 0) {
     const isSelected = (mode === 'tracing' && tabData.mode === 'tracing' && tabData.labIndex === labIndex) ||
                        (mode === 'branch' && tabData.mode === 'branch') ||
                        (mode === 'shift' && tabData.mode === 'shift') ||
-                       (mode === 'machine' && tabData.mode === 'machine');
+                       (mode === 'machine' && tabData.mode === 'machine') ||
+                       (mode === 'const' && tabData.mode === 'const') ||
+                       (mode === 'whyshift' && tabData.mode === 'whyshift');
     el.setAttribute('aria-selected', String(isSelected));
   });
 }
@@ -474,12 +640,15 @@ $('shiftReset').onclick = () => { shiftIndex = (shiftIndex + 1) % examples.lengt
 
 // ===== MACHINE CODE LOGIC =====
 const mcFormats = {
-  CONST: { opcode: '1001', fields: ['rd', 'imm9'], immBits: 9, immSigned: true, immMin: -256, immMax: 255 },
-  ADD:   { opcode: '0001', fields: ['rd', 'rs', 'sub000', 'rt'], immBits: 0 },
-  ADDI:  { opcode: '0001', fields: ['rd', 'rs', 'sub1', 'imm5'], immBits: 5, immSigned: true, immMin: -16, immMax: 15 },
-  CMP:   { opcode: '0010', fields: ['rs', 'sub0', 'sub00', 'rt'], immBits: 0 },
-  CMPI:  { opcode: '0010', fields: ['rs', 'sub1', 'imm7'], immBits: 7, immSigned: true, immMin: -64, immMax: 63 },
-  SLL:   { opcode: '1010', fields: ['rd', 'rs', 'sub00', 'uimm4'], immBits: 4, immSigned: false, immMin: 0, immMax: 15 }
+  CONST:   { opcode: '1001', fields: ['rd', 'imm9'], immBits: 9, immSigned: true, immMin: -256, immMax: 255 },
+  HICONST: { opcode: '1101', fields: ['rd', 'uimm8'], immBits: 8, immSigned: false, immMin: 0, immMax: 255 },
+  ADD:     { opcode: '0001', fields: ['rd', 'rs', 'sub000', 'rt'], immBits: 0 },
+  ADDI:    { opcode: '0001', fields: ['rd', 'rs', 'sub1', 'imm5'], immBits: 5, immSigned: true, immMin: -16, immMax: 15 },
+  CMP:     { opcode: '0010', fields: ['rs', 'sub0', 'sub00', 'rt'], immBits: 0 },
+  CMPI:    { opcode: '0010', fields: ['rs', 'sub1', 'imm7'], immBits: 7, immSigned: true, immMin: -64, immMax: 63 },
+  SLL:     { opcode: '1010', fields: ['rd', 'rs', 'sub00', 'uimm4'], immBits: 4, immSigned: false, immMin: 0, immMax: 15 },
+  SRA:     { opcode: '1010', fields: ['rd', 'rs', 'sub01', 'uimm4'], immBits: 4, immSigned: false, immMin: 0, immMax: 15 },
+  SRL:     { opcode: '1010', fields: ['rd', 'rs', 'sub10', 'uimm4'], immBits: 4, immSigned: false, immMin: 0, immMax: 15 }
 };
 
 function toSignedBinary(val, bits) {
@@ -524,11 +693,14 @@ function updateMachineCode() {
   let asmStr = '';
   switch(inst) {
     case 'CONST': asmStr = `CONST R${rd}, #${imm}`; break;
+    case 'HICONST': asmStr = `HICONST R${rd}, #${imm}`; break;
     case 'ADD': asmStr = `ADD R${rd}, R${rs}, R${rt}`; break;
     case 'ADDI': asmStr = `ADD R${rd}, R${rs}, #${imm}`; break;
     case 'CMP': asmStr = `CMP R${rs}, R${rt}`; break;
     case 'CMPI': asmStr = `CMPI R${rs}, #${imm}`; break;
     case 'SLL': asmStr = `SLL R${rd}, R${rs}, #${imm}`; break;
+    case 'SRA': asmStr = `SRA R${rd}, R${rs}, #${imm}`; break;
+    case 'SRL': asmStr = `SRL R${rd}, R${rs}, #${imm}`; break;
   }
   $('mcAssembly').textContent = asmStr;
   
@@ -558,6 +730,14 @@ function updateMachineCode() {
       bits += '00';
       fieldRanges.push({start: pos, end: pos+1, type: 'sub', label: '00'});
       pos += 2;
+    } else if (f === 'sub01') {
+      bits += '01';
+      fieldRanges.push({start: pos, end: pos+1, type: 'sub', label: '01'});
+      pos += 2;
+    } else if (f === 'sub10') {
+      bits += '10';
+      fieldRanges.push({start: pos, end: pos+1, type: 'sub', label: '10'});
+      pos += 2;
     } else if (f === 'sub0') {
       bits += '0';
       fieldRanges.push({start: pos, end: pos, type: 'sub', label: '0'});
@@ -568,7 +748,11 @@ function updateMachineCode() {
       pos += 1;
     } else if (f.startsWith('imm') || f.startsWith('uimm')) {
       const immLen = parseInt(f.replace(/[^\d]/g, ''));
-      bits += toSignedBinary(imm, immLen);
+      // For unsigned immediates, don't use sign extension
+      const immBinary = f.startsWith('uimm') 
+        ? (imm >>> 0).toString(2).padStart(immLen, '0').slice(-immLen)
+        : toSignedBinary(imm, immLen);
+      bits += immBinary;
       fieldRanges.push({start: pos, end: pos+immLen-1, type: 'imm', label: f.toUpperCase()});
       pos += immLen;
     }
@@ -624,6 +808,98 @@ function updateMachineCode() {
 }
 
 ['mcInst', 'mcRd', 'mcRs', 'mcRt', 'mcImm'].forEach(id => $(id).addEventListener('input', updateMachineCode));
+
+// ===== CONST/HICONST CALCULATOR =====
+$('constCalc').onclick = () => {
+  const val = parseInt($('constTarget').value);
+  if (isNaN(val) || val < -32768 || val > 32767) {
+    $('constResult').innerHTML = 'Enter a value between −32768 and 32767.';
+    return;
+  }
+  
+  // Convert to unsigned 16-bit for easier bit manipulation
+  const unsigned = val < 0 ? val + 65536 : val;
+  const lowByte = unsigned & 0xFF;
+  const highByte = (unsigned >> 8) & 0xFF;
+  const hexVal = unsigned.toString(16).toUpperCase().padStart(4, '0');
+  
+  // Check if CONST alone is sufficient
+  if (val >= -256 && val <= 255) {
+    $('constResult').innerHTML = `
+      <strong>Single instruction needed!</strong><br><br>
+      <code>CONST R0, #${val}</code><br><br>
+      Value ${val} fits in 9 bits (range −256 to 255).<br>
+      Hex: 0x${hexVal} → Binary: ${unsigned.toString(2).padStart(16, '0')}
+    `;
+  } else {
+    // Need CONST + HICONST
+    // CONST loads low byte with sign extension, so we need to handle carefully
+    const lowSigned = lowByte > 127 ? lowByte - 256 : lowByte;
+    $('constResult').innerHTML = `
+      <strong>Two instructions needed:</strong><br><br>
+      <code>CONST R0, #${lowSigned}</code>  <span class="muted">; Load low byte: 0x${lowByte.toString(16).toUpperCase().padStart(2, '0')}</span><br>
+      <code>HICONST R0, #${highByte}</code>  <span class="muted">; Set high byte: 0x${highByte.toString(16).toUpperCase().padStart(2, '0')}</span><br><br>
+      Target: ${val} (0x${hexVal})<br>
+      Binary: ${unsigned.toString(2).padStart(16, '0')}<br>
+      High byte: ${highByte} (0x${highByte.toString(16).toUpperCase().padStart(2, '0')})<br>
+      Low byte: ${lowByte} (0x${lowByte.toString(16).toUpperCase().padStart(2, '0')})
+    `;
+  }
+};
+
+// ===== WHY SHIFTS MATTER CALCULATOR =====
+$('shiftMathCalc').onclick = () => {
+  const val = parseInt($('shiftMathVal').value);
+  const op = $('shiftMathOp').value;
+  const amt = parseInt($('shiftMathAmt').value);
+  
+  if (isNaN(val) || val < -128 || val > 127) {
+    $('shiftMathResult').innerHTML = 'Enter a value between −128 and 127.';
+    return;
+  }
+  
+  // Convert to 8-bit unsigned for display
+  const unsigned = val < 0 ? val + 256 : val;
+  const beforeBits = unsigned.toString(2).padStart(8, '0');
+  
+  let result, afterBits, explanation, mathEquiv;
+  const multiplier = Math.pow(2, amt);
+  
+  if (op === 'SLL') {
+    result = (unsigned << amt) & 0xFF;
+    afterBits = result.toString(2).padStart(8, '0');
+    const signedResult = result > 127 ? result - 256 : result;
+    const expectedMath = val * multiplier;
+    mathEquiv = `${val} × ${multiplier} = ${expectedMath}`;
+    explanation = result === (expectedMath & 0xFF) 
+      ? `Correct! SLL by ${amt} multiplies by ${multiplier}.`
+      : `Result is ${signedResult} (8-bit overflow from ${expectedMath}).`;
+  } else if (op === 'SRL') {
+    result = unsigned >>> amt;
+    afterBits = result.toString(2).padStart(8, '0');
+    mathEquiv = `${unsigned} ÷ ${multiplier} = ${Math.floor(unsigned / multiplier)} (unsigned)`;
+    explanation = `SRL by ${amt} divides unsigned value by ${multiplier}. Fills left with 0s.`;
+    if (val < 0) {
+      explanation += `<br><strong>Warning:</strong> You used SRL on a negative number! The result ${result} is probably not what you wanted.`;
+    }
+  } else { // SRA
+    const signedShift = val >> amt;
+    result = signedShift < 0 ? signedShift + 256 : signedShift;
+    afterBits = result.toString(2).padStart(8, '0');
+    mathEquiv = `${val} ÷ ${multiplier} = ${signedShift} (signed, rounds toward −∞)`;
+    explanation = `SRA by ${amt} divides signed value by ${multiplier}. Preserves sign bit (${beforeBits[0]}).`;
+  }
+  
+  const signedResult = result > 127 ? result - 256 : result;
+  
+  $('shiftMathResult').innerHTML = `
+    <strong>Operation:</strong> ${op} R1, R0, #${amt}<br><br>
+    <strong>Before:</strong> ${val} → ${beforeBits}<br>
+    <strong>After:</strong> ${signedResult} → ${afterBits}<br><br>
+    <strong>Math equivalent:</strong> ${mathEquiv}<br><br>
+    ${explanation}
+  `;
+};
 
 // Initialize
 switchMode('tracing', 0);
